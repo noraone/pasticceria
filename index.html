@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="it">
-<head>
+<html lang="it"><head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Confronto Prezzi Fornitori</title>
@@ -363,9 +361,9 @@ body { padding-bottom: 70px; }
     <h1>Confronto Prezzi Fornitori</h1>
   </div>
   <div class="stats">
-    <div class="stat-box"><div class="val" id="stat-products">0</div><div class="lbl">Prodotti</div></div>
-    <div class="stat-box"><div class="val" id="stat-suppliers">0</div><div class="lbl">Fornitori</div></div>
-    <div class="stat-box"><div class="val" id="stat-offers">0</div><div class="lbl">Offerte</div></div>
+    <div class="stat-box"><div class="val" id="stat-products">42</div><div class="lbl">Prodotti</div></div>
+    <div class="stat-box"><div class="val" id="stat-suppliers">11</div><div class="lbl">Fornitori</div></div>
+    <div class="stat-box"><div class="val" id="stat-offers">44</div><div class="lbl">Offerte</div></div>
   </div>
 </div>
 
@@ -374,33 +372,30 @@ body { padding-bottom: 70px; }
     <input id="search" type="text" placeholder="🔍  Cerca prodotto...">
     <button id="mic-btn" title="Cerca con voce" onclick="toggleMic()">
       <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path class="mic-icon" d="M12 1a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4zm-2 4a2 2 0 0 1 4 0v6a2 2 0 0 1-4 0V5zm-5 6a1 1 0 0 1 2 0 5 5 0 0 0 10 0 1 1 0 0 1 2 0 7 7 0 0 1-6 6.92V20h2a1 1 0 0 1 0 2H9a1 1 0 0 1 0-2h2v-2.08A7 7 0 0 1 5 11z"/>
+        <path class="mic-icon" d="M12 1a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4zm-2 4a2 2 0 0 1 4 0v6a2 2 0 0 1-4 0V5zm-5 6a1 1 0 0 1 2 0 5 5 0 0 0 10 0 1 1 0 0 1 2 0 7 7 0 0 1-6 6.92V20h2a1 1 0 0 1 0 2H9a1 1 0 0 1 0-2h2v-2.08A7 7 0 0 1 5 11z"></path>
       </svg>
     </button>
   </div>
   <div id="mic-status"><div class="dot"></div> In ascolto…</div>
-  <select id="filterSupplier" style="background:#2a2d3e;color:#e8e0d0;border:1px solid #3a3d4a;border-radius:6px;padding:6px 10px;font-family:inherit;font-size:13px;outline:none;cursor:pointer;"><option value="">Tutti i fornitori</option></select>
+  <select id="filterSupplier" style="background:#2a2d3e;color:#e8e0d0;border:1px solid #3a3d4a;border-radius:6px;padding:6px 10px;font-family:inherit;font-size:13px;outline:none;cursor:pointer;"><option value="">Tutti i fornitori</option><option value="TAVI">TAVI</option><option value="ROSSETTO">ROSSETTO</option><option value="CAVIGLIA">CAVIGLIA</option><option value="SIGNETTI">SIGNETTI</option><option value="JONNY">JONNY</option><option value="GALLO">GALLO</option><option value="GAilli">GAilli</option><option value="MIRO">MIRO</option><option value="Frascheri">Frascheri</option><option value="Barbieri">Barbieri</option><option value="Novelli">Novelli</option></select>
   <select id="sortBy" style="background:#2a2d3e;color:#e8e0d0;border:1px solid #3a3d4a;border-radius:6px;padding:6px 10px;font-family:inherit;font-size:13px;outline:none;cursor:pointer;">
     <option value="recent">Ordina: Più recenti</option>
     <option value="product">Ordina: Nome</option>
     <option value="bestPrice">Ordina: Prezzo minimo</option>
     <option value="offers">Ordina: N° offerte</option>
   </select>
-  <span id="count"></span>
+  <span id="count">42 prodotti</span>
   <button onclick="openNewArticleModal()" style="display:flex;align-items:center;gap:8px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;padding:7px 16px;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;">
     ＋ Nuovo articolo
   </button>
-  <button onclick="pubblicaSuGitHub()" oncontextmenu="resetGhToken();return false;" id="github-publish-btn"
-    style="display:flex;align-items:center;gap:8px;background:rgba(99,179,237,0.12);border:1px solid rgba(99,179,237,0.3);color:#63b3ed;padding:7px 16px;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;">
-    🔄 Aggiorna software
-  </button>
+  <button onclick="pubblicaSuGitHub()" oncontextmenu="resetGhToken();return false;" id="github-publish-btn" style="display: flex; align-items: center; gap: 8px; background: rgba(99, 179, 237, 0.12); border: 1px solid rgba(99, 179, 237, 0.3); color: rgb(99, 179, 237); padding: 7px 16px; border-radius: 6px; font-size: 12px; font-family: inherit; cursor: pointer; opacity: 0.6;" disabled="">⏳ Pubblicando...</button>
   <button onclick="openUpdateModal()" style="margin-left:auto;display:flex;align-items:center;gap:8px;background:#1a1d2e;border:1px solid #2a2d3a;color:#fbbf24;padding:7px 16px;border-radius:6px;font-size:12px;font-family:inherit;cursor:pointer;">
-    <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#fbbf24" d="M12 1a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4zm-2 4a2 2 0 0 1 4 0v6a2 2 0 0 1-4 0V5zm-5 6a1 1 0 0 1 2 0 5 5 0 0 0 10 0 1 1 0 0 1 2 0 7 7 0 0 1-6 6.92V20h2a1 1 0 0 1 0 2H9a1 1 0 0 1 0-2h2v-2.08A7 7 0 0 1 5 11z"/></svg>
+    <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#fbbf24" d="M12 1a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4zm-2 4a2 2 0 0 1 4 0v6a2 2 0 0 1-4 0V5zm-5 6a1 1 0 0 1 2 0 5 5 0 0 0 10 0 1 1 0 0 1 2 0 7 7 0 0 1-6 6.92V20h2a1 1 0 0 1 0 2H9a1 1 0 0 1 0-2h2v-2.08A7 7 0 0 1 5 11z"></path></svg>
     Aggiorna prezzi
   </button>
 </div>
 
-<div id="content"><div id="cards-grid"></div></div></div><!-- end page-prezzi -->
+<div id="content"><div id="cards-grid"><div class="card fade recent" style="animation-delay: 0s;"><div class="card-badge-recent">Nuovo</div><div class="card-offers">3×</div><div class="card-name">BURRO 82,5%</div><div class="card-divider"></div><div class="card-price">€ 5.40</div><div class="card-supplier">TAVI</div><div class="card-date">07/10/2025</div></div><div class="card fade" style="animation-delay: 0.015s;"><div class="card-offers">2×</div><div class="card-name">BURRO ANIDRO</div><div class="card-divider"></div><div class="card-price">€ 10.90</div><div class="card-supplier">TAVI</div><div class="card-date">06/10/2025</div></div><div class="card fade" style="animation-delay: 0.03s;"><div class="card-offers">2×</div><div class="card-name">LIEVITO</div><div class="card-divider"></div><div class="card-price">€ 2.55</div><div class="card-supplier">CAVIGLIA</div><div class="card-date">06/10/2025</div></div><div class="card fade" style="animation-delay: 0.045s;"><div class="card-offers">2×</div><div class="card-name">GRANELLA DI NOCCIOLE</div><div class="card-divider"></div><div class="card-price">€ 16.20</div><div class="card-supplier">TAVI</div><div class="card-date">05/10/2025</div></div><div class="card fade" style="animation-delay: 0.06s;"><div class="card-name">PINOLI</div><div class="card-divider"></div><div class="card-price">€ 69.00</div><div class="card-supplier">TAVI</div><div class="card-date">05/10/2025</div></div><div class="card fade" style="animation-delay: 0.075s;"><div class="card-offers">2×</div><div class="card-name">FIOCCHI PATATE</div><div class="card-divider"></div><div class="card-price">€ 3.40</div><div class="card-supplier">ROSSETTO</div><div class="card-date">04/10/2025</div></div><div class="card fade" style="animation-delay: 0.09s;"><div class="card-name">STRACCHINO</div><div class="card-divider"></div><div class="card-price">€ 6.63</div><div class="card-supplier">GALLO</div><div class="card-date">04/10/2025</div></div><div class="card fade" style="animation-delay: 0.105s;"><div class="card-offers">2×</div><div class="card-name">FARINA DI NOCCIOLE</div><div class="card-divider"></div><div class="card-price">€ 16.00</div><div class="card-supplier">ROSSETTO</div><div class="card-date">03/10/2025</div></div><div class="card fade" style="animation-delay: 0.12s;"><div class="card-offers">2×</div><div class="card-name">ZUCCHERO SEMOLATO</div><div class="card-divider"></div><div class="card-price">€ 0.75</div><div class="card-supplier">TAVI</div><div class="card-date">03/10/2025</div></div><div class="card fade" style="animation-delay: 0.135s;"><div class="card-offers">2×</div><div class="card-name">BURRO PARMAREGGIO</div><div class="card-divider"></div><div class="card-price">€ 5.50</div><div class="card-supplier">TAVI</div><div class="card-date">02/10/2025</div></div><div class="card fade" style="animation-delay: 0.15s;"><div class="card-name">ARANCIO CANDITO</div><div class="card-divider"></div><div class="card-price">€ 6.15</div><div class="card-supplier">TAVI</div><div class="card-date">01/10/2025</div></div><div class="card fade" style="animation-delay: 0.165s;"><div class="card-name">CANNELLA</div><div class="card-divider"></div><div class="card-price">€ 7.25</div><div class="card-supplier">TAVI</div><div class="card-date">01/10/2025</div></div><div class="card fade" style="animation-delay: 0.18s;"><div class="card-name">CIOCCOLATO SURROGATO</div><div class="card-divider"></div><div class="card-price">€ 3.90</div><div class="card-supplier">TAVI</div><div class="card-date">01/10/2025</div></div><div class="card fade" style="animation-delay: 0.195s;"><div class="card-name">MARGARINA</div><div class="card-divider"></div><div class="card-price">€ 2.80</div><div class="card-supplier">TAVI</div><div class="card-date">30/09/2025</div></div><div class="card fade" style="animation-delay: 0.21s;"><div class="card-name">MARMELLATA</div><div class="card-divider"></div><div class="card-price">€ 2.98</div><div class="card-supplier">TAVI</div><div class="card-date">29/09/2025</div></div><div class="card fade" style="animation-delay: 0.225s;"><div class="card-name">MALTO</div><div class="card-divider"></div><div class="card-price">€ 1.69</div><div class="card-supplier">ROSSETTO</div><div class="card-date">29/09/2025</div></div><div class="card fade" style="animation-delay: 0.24s;"><div class="card-name">VANILLINA</div><div class="card-divider"></div><div class="card-price">€ 4.10</div><div class="card-supplier">TAVI</div><div class="card-date">28/09/2025</div></div><div class="card fade" style="animation-delay: 0.255s;"><div class="card-name">ZUCCHERO GRANELLA</div><div class="card-divider"></div><div class="card-price">€ 1.98</div><div class="card-supplier">TAVI</div><div class="card-date">28/09/2025</div></div><div class="card fade" style="animation-delay: 0.27s;"><div class="card-name">MARSALA</div><div class="card-divider"></div><div class="card-price">€ 8.72</div><div class="card-supplier">TAVI</div><div class="card-date">27/09/2025</div></div><div class="card fade" style="animation-delay: 0.285s;"><div class="card-name">ZUCCHERO A VELO</div><div class="card-divider"></div><div class="card-price">€ 1.86</div><div class="card-supplier">TAVI</div><div class="card-date">27/09/2025</div></div><div class="card fade" style="animation-delay: 0.3s;"><div class="card-name">MANDORLE</div><div class="card-divider"></div><div class="card-price">€ 8.40</div><div class="card-supplier">TAVI</div><div class="card-date">26/09/2025</div></div><div class="card fade" style="animation-delay: 0.315s;"><div class="card-name">NOCI</div><div class="card-divider"></div><div class="card-price">€ 13.50</div><div class="card-supplier">TAVI</div><div class="card-date">26/09/2025</div></div><div class="card fade" style="animation-delay: 0.33s;"><div class="card-name">CEDRO</div><div class="card-divider"></div><div class="card-price">€ 6.65</div><div class="card-supplier">TAVI</div><div class="card-date">25/09/2025</div></div><div class="card fade" style="animation-delay: 0.345s;"><div class="card-name">CACAO</div><div class="card-divider"></div><div class="card-price">€ 17.50</div><div class="card-supplier">TAVI</div><div class="card-date">25/09/2025</div></div><div class="card fade" style="animation-delay: 0.36s;"><div class="card-name">BOESON</div><div class="card-divider"></div><div class="card-price">€ 5.71</div><div class="card-supplier">TAVI</div><div class="card-date">24/09/2025</div></div><div class="card fade" style="animation-delay: 0.375s;"><div class="card-name">FICHI</div><div class="card-divider"></div><div class="card-price">€ 6.95</div><div class="card-supplier">TAVI</div><div class="card-date">24/09/2025</div></div><div class="card fade" style="animation-delay: 0.39s;"><div class="card-name">FARINA DI RISO VENERE</div><div class="card-divider"></div><div class="card-price">€ 1.88</div><div class="card-supplier">TAVI</div><div class="card-date">23/09/2025</div></div><div class="card fade" style="animation-delay: 0.405s;"><div class="card-name">OLIVE 6 kg</div><div class="card-divider"></div><div class="card-price">€ 33.83</div><div class="card-supplier">ROSSETTO</div><div class="card-date">21/09/2025</div></div><div class="card fade" style="animation-delay: 0.42s;"><div class="card-name">POLPA</div><div class="card-divider"></div><div class="card-price">€ 13.50</div><div class="card-supplier">ROSSETTO</div><div class="card-date">21/09/2025</div></div><div class="card fade" style="animation-delay: 0.435s;"><div class="card-name">PETIT FOURS</div><div class="card-divider"></div><div class="card-price">€ 9.85</div><div class="card-supplier">TAVI</div><div class="card-date">20/09/2025</div></div><div class="card fade" style="animation-delay: 0.45s;"><div class="card-name">SEMI DI ANICE</div><div class="card-divider"></div><div class="card-price">€ 9.98</div><div class="card-supplier">TAVI</div><div class="card-date">20/09/2025</div></div><div class="card fade" style="animation-delay: 0.465s;"><div class="card-name">CIOCCOLATO CRUNC</div><div class="card-divider"></div><div class="card-price">€ 22.84</div><div class="card-supplier">MIRO</div><div class="card-date">19/09/2025</div></div><div class="card fade" style="animation-delay: 0.48s;"><div class="card-name">PASTA SCORZONE ARANCIA</div><div class="card-divider"></div><div class="card-price">€ 13.79</div><div class="card-supplier">MIRO</div><div class="card-date">19/09/2025</div></div><div class="card fade" style="animation-delay: 0.495s;"><div class="card-name">SALE</div><div class="card-divider"></div><div class="card-price">€ 0.36</div><div class="card-supplier">ROSSETTO</div><div class="card-date">18/09/2025</div></div><div class="card fade" style="animation-delay: 0.51s;"><div class="card-name">TUORLO</div><div class="card-divider"></div><div class="card-price">€ 10.28</div><div class="card-supplier">Frascheri</div><div class="card-date">18/09/2025</div></div><div class="card fade recent" style="animation-delay: 0.525s;"><div class="card-badge-recent">Nuovo</div><div class="card-name">FARINA ORO</div><div class="card-divider"></div><div class="card-no-data">—</div></div><div class="card fade recent" style="animation-delay: 0.54s;"><div class="card-badge-recent">Nuovo</div><div class="card-name">PERE CUBETTI</div><div class="card-divider"></div><div class="card-no-data">—</div></div><div class="card fade" style="animation-delay: 0.555s;"><div class="card-name">PROSCIUTTO COTTO</div><div class="card-divider"></div><div class="card-no-data">—</div></div><div class="card fade" style="animation-delay: 0.57s;"><div class="card-name">FARINA INTEGRALE</div><div class="card-divider"></div><div class="card-no-data">—</div></div><div class="card fade" style="animation-delay: 0.585s;"><div class="card-name">FARINA VIOLA</div><div class="card-divider"></div><div class="card-no-data">—</div></div><div class="card fade" style="animation-delay: 0.6s;"><div class="card-name">FARINA TIPO 2</div><div class="card-divider"></div><div class="card-no-data">—</div></div><div class="card fade" style="animation-delay: 0.615s;"><div class="card-name">OLIO SANSA</div><div class="card-divider"></div><div class="card-no-data">—</div></div></div></div></div><!-- end page-prezzi -->
 
 <!-- DETAIL MODAL -->
 <div id="modal-bg" onclick="closeModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.78);align-items:center;justify-content:center;z-index:100;padding:20px;">
@@ -421,8 +416,7 @@ body { padding-bottom: 70px; }
 
     <div style="margin-bottom:12px;">
       <div style="font-size:10px;letter-spacing:2px;color:#7a7a8a;margin-bottom:6px;text-transform:uppercase;">Nome articolo</div>
-      <input id="new-article-name" type="text" placeholder="Es: FARINA DI KAMUT"
-        style="width:100%;background:#13151f;border:1px solid #2a2d3a;color:#fff;padding:9px 13px;border-radius:8px;font-family:inherit;font-size:14px;outline:none;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
+      <input id="new-article-name" type="text" placeholder="Es: FARINA DI KAMUT" style="width:100%;background:#13151f;border:1px solid #2a2d3a;color:#fff;padding:9px 13px;border-radius:8px;font-family:inherit;font-size:14px;outline:none;text-transform:uppercase;" oninput="this.value=this.value.toUpperCase()">
     </div>
 
     <div style="margin-bottom:12px;">
@@ -430,31 +424,23 @@ body { padding-bottom: 70px; }
       <select id="new-article-supplier" onchange="handleNewArticleSupplier(this)" style="width:100%;background:#2a2d3e;border:1px solid #4ade8066;color:#4ade80;padding:9px 12px;border-radius:8px;font-family:inherit;font-size:14px;font-weight:600;outline:none;cursor:pointer;">
         <option value="">— Seleziona fornitore —</option>
       </select>
-      <input id="new-article-supplier-name" type="text" placeholder="Nome nuovo fornitore..."
-        onkeydown="if(event.key==='Enter') confirmNewArticleSupplier()"
-        style="display:none;margin-top:8px;width:100%;background:#13151f;border:1px solid #4ade8066;color:#4ade80;padding:9px 12px;border-radius:8px;font-family:inherit;font-size:14px;outline:none;text-transform:uppercase;">
-      <button id="new-article-supplier-confirm" onclick="confirmNewArticleSupplier()"
-        style="display:none;margin-top:6px;width:100%;padding:8px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:#4ade80;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;font-weight:700;">
+      <input id="new-article-supplier-name" type="text" placeholder="Nome nuovo fornitore..." onkeydown="if(event.key==='Enter') confirmNewArticleSupplier()" style="display:none;margin-top:8px;width:100%;background:#13151f;border:1px solid #4ade8066;color:#4ade80;padding:9px 12px;border-radius:8px;font-family:inherit;font-size:14px;outline:none;text-transform:uppercase;">
+      <button id="new-article-supplier-confirm" onclick="confirmNewArticleSupplier()" style="display:none;margin-top:6px;width:100%;padding:8px;background:rgba(74,222,128,0.15);border:1px solid rgba(74,222,128,0.3);color:#4ade80;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;font-weight:700;">
         ✓ Aggiungi fornitore
       </button>
     </div>
 
     <div style="margin-bottom:20px;">
       <div style="font-size:10px;letter-spacing:2px;color:#7a7a8a;margin-bottom:6px;text-transform:uppercase;">Prezzo (€)</div>
-      <input id="new-article-price" type="number" step="0.01" min="0" placeholder="Tocca per inserire"
-        readonly
-        onclick="openCalc(document.getElementById('new-article-name').value || 'Nuovo articolo', document.getElementById('new-article-supplier').value || '?', null, this)"
-        style="width:100%;background:#13151f;border:1px solid #22c55e55;color:#22c55e;padding:9px 13px;border-radius:8px;font-family:inherit;font-size:16px;font-weight:700;outline:none;cursor:pointer;">
+      <input id="new-article-price" type="number" step="0.01" min="0" placeholder="Tocca per inserire" readonly="" onclick="openCalc(document.getElementById('new-article-name').value || 'Nuovo articolo', document.getElementById('new-article-supplier').value || '?', null, this)" style="width:100%;background:#13151f;border:1px solid #22c55e55;color:#22c55e;padding:9px 13px;border-radius:8px;font-family:inherit;font-size:16px;font-weight:700;outline:none;cursor:pointer;">
     </div>
 
     <div id="new-article-error" style="display:none;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:8px;padding:10px;font-size:12px;color:#f87171;margin-bottom:12px;"></div>
 
-    <button onclick="saveNewArticle()"
-      style="width:100%;padding:11px;background:rgba(74,222,128,0.15);border:2px solid rgba(74,222,128,0.4);color:#4ade80;border-radius:8px;font-family:inherit;font-size:14px;cursor:pointer;font-weight:700;margin-bottom:8px;">
+    <button onclick="saveNewArticle()" style="width:100%;padding:11px;background:rgba(74,222,128,0.15);border:2px solid rgba(74,222,128,0.4);color:#4ade80;border-radius:8px;font-family:inherit;font-size:14px;cursor:pointer;font-weight:700;margin-bottom:8px;">
       ✅ Salva articolo
     </button>
-    <button onclick="closeNewArticleModal()"
-      style="width:100%;padding:9px;background:#13151f;color:#7a7a8a;border-radius:7px;font-size:12px;font-family:inherit;border:1px solid #2a2d3a;cursor:pointer;">Chiudi</button>
+    <button onclick="closeNewArticleModal()" style="width:100%;padding:9px;background:#13151f;color:#7a7a8a;border-radius:7px;font-size:12px;font-family:inherit;border:1px solid #2a2d3a;cursor:pointer;">Chiudi</button>
   </div>
 </div>
 
@@ -464,12 +450,10 @@ body { padding-bottom: 70px; }
     <div style="font-size:9px;letter-spacing:4px;color:#c8a96e;margin-bottom:6px;text-transform:uppercase;">Modifica Prezzi</div>
     <h2 id="edit-product-title" style="font-family:'Playfair Display',serif;font-size:19px;color:#fff;margin-bottom:18px;"></h2>
     <div id="edit-prices-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;max-height:320px;overflow-y:auto;"></div>
-    <button onclick="saveEditedPrices()"
-      style="width:100%;padding:11px;background:rgba(200,169,110,0.15);border:2px solid rgba(200,169,110,0.4);color:#c8a96e;border-radius:8px;font-family:inherit;font-size:14px;cursor:pointer;font-weight:700;margin-bottom:8px;">
+    <button onclick="saveEditedPrices()" style="width:100%;padding:11px;background:rgba(200,169,110,0.15);border:2px solid rgba(200,169,110,0.4);color:#c8a96e;border-radius:8px;font-family:inherit;font-size:14px;cursor:pointer;font-weight:700;margin-bottom:8px;">
       💾 Salva modifiche
     </button>
-    <button onclick="closeEditPriceModal()"
-      style="width:100%;padding:9px;background:#13151f;color:#7a7a8a;border-radius:7px;font-size:12px;font-family:inherit;border:1px solid #2a2d3a;cursor:pointer;">Chiudi</button>
+    <button onclick="closeEditPriceModal()" style="width:100%;padding:9px;background:#13151f;color:#7a7a8a;border-radius:7px;font-size:12px;font-family:inherit;border:1px solid #2a2d3a;cursor:pointer;">Chiudi</button>
   </div>
 </div>
 
@@ -491,7 +475,7 @@ body { padding-bottom: 70px; }
       <div style="font-size:10px;letter-spacing:2px;color:#7a7a8a;margin-bottom:6px;text-transform:uppercase;">Fornitore</div>
       <select id="update-supplier" onchange="showSupplierArticles(this.value)" style="width:100%;background:#2a2d3e;border:1px solid #fbbf2466;color:#fbbf24;padding:9px 12px;border-radius:8px;font-family:inherit;font-size:14px;font-weight:600;outline:none;cursor:pointer;">
         <option value="">— Seleziona fornitore —</option>
-      </select>
+      <option value="TAVI">TAVI</option><option value="ROSSETTO">ROSSETTO</option><option value="CAVIGLIA">CAVIGLIA</option><option value="SIGNETTI">SIGNETTI</option><option value="JONNY">JONNY</option><option value="GALLO">GALLO</option><option value="GAilli">GAilli</option><option value="MIRO">MIRO</option><option value="Frascheri">Frascheri</option><option value="Barbieri">Barbieri</option><option value="Novelli">Novelli</option></select>
     </div>
 
     <!-- Two column layout: transcript + supplier articles -->
@@ -500,37 +484,31 @@ body { padding-bottom: 70px; }
       <div style="flex:1;min-width:0;">
         <div style="font-size:10px;letter-spacing:2px;color:#7a7a8a;margin-bottom:6px;text-transform:uppercase;">Testo prezzi</div>
         <div style="font-size:11px;color:#555;margin-bottom:6px;">Es: <span style="color:#c8a96e">burro 5,40 pinoli 60,00</span></div>
-        <textarea id="update-transcript" placeholder="Scrivi qui i prezzi oppure su iPhone usa il 🎤 della tastiera per dettare..."
-          style="width:100%;min-height:130px;background:#13151f;border:1px solid #4a4d5a;border-radius:8px;color:#e8e0d0;padding:10px 13px;font-family:inherit;font-size:14px;resize:none;outline:none;line-height:1.8;"
-          oninput="this.style.borderColor='#c8a96e'"></textarea>
+        <textarea id="update-transcript" placeholder="Scrivi qui i prezzi oppure su iPhone usa il 🎤 della tastiera per dettare..." style="width:100%;min-height:130px;background:#13151f;border:1px solid #4a4d5a;border-radius:8px;color:#e8e0d0;padding:10px 13px;font-family:inherit;font-size:14px;resize:none;outline:none;line-height:1.8;" oninput="this.style.borderColor='#c8a96e'"></textarea>
         <div style="font-size:10px;color:#555;margin-top:4px;">📱 iPhone: tocca il campo → premi il 🎤 sulla tastiera</div>
       </div>
       <!-- Right: supplier article list -->
       <div id="supplier-articles-panel" style="width:100%;flex-shrink:0;display:none;flex-direction:column;">
         <div style="font-size:10px;letter-spacing:2px;color:#7a7a8a;margin-bottom:6px;text-transform:uppercase;">Articoli fornitore</div>
-        <div id="supplier-articles-list"
-          style="background:#13151f;border:1px solid #2a2d3a;border-radius:8px;padding:6px;overflow-y:auto;max-height:120px;display:flex;flex-direction:column;gap:3px;">
+        <div id="supplier-articles-list" style="background:#13151f;border:1px solid #2a2d3a;border-radius:8px;padding:6px;overflow-y:auto;max-height:120px;display:flex;flex-direction:column;gap:3px;">
         </div>
         <div style="font-size:9px;color:#555;margin-top:5px;line-height:1.4;">Articoli già presenti.<br>Nuovi articoli verranno creati.</div>
       </div>
     </div>
 
     <div style="display:flex;gap:8px;margin-bottom:16px;">
-      <button id="update-mic-record" onclick="toggleRecordUpdate()"
-        style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px;background:#13151f;border:2px solid rgba(251,191,36,0.3);color:#fbbf24;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;">
-        <svg width="13" height="13" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4zm-2 4a2 2 0 0 1 4 0v6a2 2 0 0 1-4 0V5zm-5 6a1 1 0 0 1 2 0 5 5 0 0 0 10 0 1 1 0 0 1 2 0 7 7 0 0 1-6 6.92V20h2a1 1 0 0 1 0 2H9a1 1 0 0 1 0-2h2v-2.08A7 7 0 0 1 5 11z"/></svg>
+      <button id="update-mic-record" onclick="toggleRecordUpdate()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px;background:#13151f;border:2px solid rgba(251,191,36,0.3);color:#fbbf24;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;">
+        <svg width="13" height="13" viewBox="0 0 24 24"><path fill="currentColor" d="M12 1a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4zm-2 4a2 2 0 0 1 4 0v6a2 2 0 0 1-4 0V5zm-5 6a1 1 0 0 1 2 0 5 5 0 0 0 10 0 1 1 0 0 1 2 0 7 7 0 0 1-6 6.92V20h2a1 1 0 0 1 0 2H9a1 1 0 0 1 0-2h2v-2.08A7 7 0 0 1 5 11z"></path></svg>
         <span id="record-label">🎤 Registra (Chrome)</span>
       </button>
-      <button onclick="parseAndPreview()"
-        style="flex:1;padding:10px;background:rgba(251,191,36,0.12);border:2px solid rgba(251,191,36,0.3);color:#fbbf24;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;">
+      <button onclick="parseAndPreview()" style="flex:1;padding:10px;background:rgba(251,191,36,0.12);border:2px solid rgba(251,191,36,0.3);color:#fbbf24;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;">
         🔍 Analizza
       </button>
     </div>
     <!-- Foto fattura -->
     <div style="margin-top:8px;">
       <input type="file" id="foto-fattura-input" accept="image/*" capture="environment" style="display:none;" onchange="analizzaFotoFattura(this)">
-      <button onclick="document.getElementById('foto-fattura-input').click()"
-        style="width:100%;padding:11px;background:rgba(99,179,237,0.12);border:2px solid rgba(99,179,237,0.3);color:#63b3ed;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+      <button onclick="document.getElementById('foto-fattura-input').click()" style="width:100%;padding:11px;background:rgba(99,179,237,0.12);border:2px solid rgba(99,179,237,0.3);color:#63b3ed;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
         📷 Analizza foto fattura
       </button>
       <div id="foto-status" style="display:none;margin-top:8px;padding:10px;background:#13151f;border-radius:8px;font-size:12px;color:#888;text-align:center;"></div>
@@ -539,16 +517,14 @@ body { padding-bottom: 70px; }
     <div id="update-preview" style="display:none;margin-bottom:14px;">
       <div style="font-size:10px;letter-spacing:2px;color:#7a7a8a;margin-bottom:8px;text-transform:uppercase;">Modifiche rilevate</div>
       <div id="update-preview-list" style="display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;"></div>
-      <button onclick="applyUpdates()"
-        style="margin-top:10px;width:100%;padding:11px;background:rgba(34,197,94,0.15);border:2px solid rgba(34,197,94,0.4);color:#22c55e;border-radius:8px;font-family:inherit;font-size:14px;cursor:pointer;font-weight:700;">
+      <button onclick="applyUpdates()" style="margin-top:10px;width:100%;padding:11px;background:rgba(34,197,94,0.15);border:2px solid rgba(34,197,94,0.4);color:#22c55e;border-radius:8px;font-family:inherit;font-size:14px;cursor:pointer;font-weight:700;">
         ✅ Applica aggiornamenti
       </button>
     </div>
 
     <div id="update-error" style="display:none;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:8px;padding:11px;font-size:12px;color:#f87171;margin-bottom:12px;"></div>
 
-    <button onclick="closeUpdateModal()"
-      style="width:100%;padding:9px;background:#13151f;color:#7a7a8a;border-radius:7px;font-size:12px;font-family:inherit;border:1px solid #2a2d3a;cursor:pointer;">Chiudi</button>
+    <button onclick="closeUpdateModal()" style="width:100%;padding:9px;background:#13151f;color:#7a7a8a;border-radius:7px;font-size:12px;font-family:inherit;border:1px solid #2a2d3a;cursor:pointer;">Chiudi</button>
   </div>
 </div>
 
@@ -3210,24 +3186,24 @@ async function pubblicaSuGitHub() {
 <div id="tab-bar">
   <button class="tab-btn active" id="tab-prezzi" onclick="switchTab('prezzi')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-      <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      <rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect>
+      <rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect>
     </svg>
     Prezzi
   </button>
   <button class="tab-btn" id="tab-ricette" onclick="switchTab('ricette')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
-      <rect x="9" y="3" width="6" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/>
-      <line x1="9" y1="16" x2="12" y2="16"/>
+      <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"></path>
+      <rect x="9" y="3" width="6" height="4" rx="1"></rect><line x1="9" y1="12" x2="15" y2="12"></line>
+      <line x1="9" y1="16" x2="12" y2="16"></line>
     </svg>
     Ricette
   </button>
   <button class="tab-btn" id="tab-catalogo" onclick="switchTab('catalogo')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-      <rect x="3" y="14" width="7" height="7" rx="1"/><line x1="14" y1="17" x2="21" y2="17"/>
-      <line x1="17" y1="14" x2="17" y2="21"/>
+      <rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect>
+      <rect x="3" y="14" width="7" height="7" rx="1"></rect><line x1="14" y1="17" x2="21" y2="17"></line>
+      <line x1="17" y1="14" x2="17" y2="21"></line>
     </svg>
     Catalogo
   </button>
@@ -3250,17 +3226,14 @@ async function pubblicaSuGitHub() {
 <div id="recipe-modal-bg" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:300;overflow-y:auto;">
   <div style="background:#1e2130;margin:20px 12px 40px;border-radius:16px;padding:20px;">
     <div style="font-size:10px;color:#c8a96e;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">RICETTA</div>
-    <input id="recipe-name-input" type="text" placeholder="Nome ricetta..."
-      style="width:100%;background:#13151f;border:1px solid #4a4d5a;color:#fff;padding:10px 14px;border-radius:8px;font-family:'Playfair Display',serif;font-size:18px;outline:none;margin-bottom:8px;">
+    <input id="recipe-name-input" type="text" placeholder="Nome ricetta..." style="width:100%;background:#13151f;border:1px solid #4a4d5a;color:#fff;padding:10px 14px;border-radius:8px;font-family:'Playfair Display',serif;font-size:18px;outline:none;margin-bottom:8px;">
 
     <!-- DETTATURA RICETTA -->
     <div style="background:#13151f;border:1px dashed rgba(200,169,110,0.4);border-radius:10px;padding:12px;margin-bottom:14px;">
       <div style="font-size:9px;color:#fff;font-weight:700;letter-spacing:1px;margin-bottom:6px;">🎤 DETTA LA RICETTA</div>
       <div style="font-size:10px;color:#888;margin-bottom:8px;">Es: <span style="color:#c8a96e">burro 250 grammi, zucchero 200 grammi, farina 300 grammi</span></div>
       <div style="font-size:10px;color:#888;margin-bottom:8px;">oppure: <span style="color:#c8a96e">250 di burro, 200 di zucchero</span></div>
-      <textarea id="recipe-voice-text" placeholder="Scrivi qui o usa 🎤 sulla tastiera iOS..."
-        style="width:100%;min-height:80px;background:#1a1d2e;border:1px solid #4a4d5a;border-radius:8px;color:#e8e0d0;padding:10px;font-family:inherit;font-size:13px;resize:none;outline:none;line-height:1.6;"
-        oninput="this.style.borderColor='#c8a96e'"></textarea>
+      <textarea id="recipe-voice-text" placeholder="Scrivi qui o usa 🎤 sulla tastiera iOS..." style="width:100%;min-height:80px;background:#1a1d2e;border:1px solid #4a4d5a;border-radius:8px;color:#e8e0d0;padding:10px;font-family:inherit;font-size:13px;resize:none;outline:none;line-height:1.6;" oninput="this.style.borderColor='#c8a96e'"></textarea>
       <div style="font-size:10px;color:#555;margin-top:4px;margin-bottom:8px;">📱 iPhone: tocca il campo → premi il 🎤 sulla tastiera</div>
       <button onclick="parseRecipeVoice()" style="width:100%;padding:9px;background:rgba(251,191,36,0.12);border:2px solid rgba(251,191,36,0.3);color:#fbbf24;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;">🔍 Analizza e aggiungi ingredienti</button>
       <div id="recipe-voice-error" style="display:none;margin-top:8px;padding:8px 10px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);border-radius:6px;font-size:12px;color:#f87171;"></div>
@@ -3273,8 +3246,7 @@ async function pubblicaSuGitHub() {
     <div style="display:flex;gap:8px;margin-bottom:12px;margin-top:8px;">
       <div style="flex:1;">
         <div style="font-size:9px;color:#fff;letter-spacing:1px;margin-bottom:4px;">PESO TOTALE (g/ml)</div>
-        <input id="recipe-weight-input" type="number" min="1" placeholder="Es: 1000"
-          style="width:100%;background:#13151f;border:1px solid #4a4d5a;color:#fbbf24;padding:8px 12px;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;outline:none;">
+        <input id="recipe-weight-input" type="number" min="1" placeholder="Es: 1000" style="width:100%;background:#13151f;border:1px solid #4a4d5a;color:#fbbf24;padding:8px 12px;border-radius:8px;font-family:inherit;font-size:14px;font-weight:700;outline:none;">
       </div>
       <div style="flex:1;">
         <div style="font-size:9px;color:#fff;letter-spacing:1px;margin-bottom:4px;">UNITÀ</div>
@@ -3295,23 +3267,17 @@ async function pubblicaSuGitHub() {
       <div style="display:flex;flex-direction:column;gap:8px;">
         <div style="display:flex;align-items:center;gap:8px;">
           <div style="font-size:11px;color:#fff;width:90px;flex-shrink:0;">👷 Lavorazione</div>
-          <input id="recipe-voice-work" type="text" placeholder="es: 1 ora e 30"
-            style="flex:1;background:#1a1d2e;border:1px solid #4a4d5a;color:#fbbf24;padding:8px 10px;border-radius:8px;font-family:inherit;font-size:14px;outline:none;"
-            oninput="parseTimeField(this,'recipe-hours-work-h','recipe-hours-work-m')">
+          <input id="recipe-voice-work" type="text" placeholder="es: 1 ora e 30" style="flex:1;background:#1a1d2e;border:1px solid #4a4d5a;color:#fbbf24;padding:8px 10px;border-radius:8px;font-family:inherit;font-size:14px;outline:none;" oninput="parseTimeField(this,'recipe-hours-work-h','recipe-hours-work-m')">
           <div id="recipe-work-display" style="font-size:12px;color:#c8a96e;min-width:60px;text-align:right;"></div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
           <div style="font-size:11px;color:#fff;width:90px;flex-shrink:0;">⚡ Cottura</div>
-          <input id="recipe-voice-cook" type="text" placeholder="es: 45"
-            style="flex:1;background:#1a1d2e;border:1px solid #4a4d5a;color:#fbbf24;padding:8px 10px;border-radius:8px;font-family:inherit;font-size:14px;outline:none;"
-            oninput="parseTimeField(this,'recipe-hours-cook-h','recipe-hours-cook-m')">
+          <input id="recipe-voice-cook" type="text" placeholder="es: 45" style="flex:1;background:#1a1d2e;border:1px solid #4a4d5a;color:#fbbf24;padding:8px 10px;border-radius:8px;font-family:inherit;font-size:14px;outline:none;" oninput="parseTimeField(this,'recipe-hours-cook-h','recipe-hours-cook-m')">
           <div id="recipe-cook-display" style="font-size:12px;color:#c8a96e;min-width:60px;text-align:right;"></div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
           <div style="font-size:11px;color:#fff;width:90px;flex-shrink:0;">🌡 Lievitazione</div>
-          <input id="recipe-voice-rise" type="text" placeholder="es: 2 ore"
-            style="flex:1;background:#1a1d2e;border:1px solid #4a4d5a;color:#fbbf24;padding:8px 10px;border-radius:8px;font-family:inherit;font-size:14px;outline:none;"
-            oninput="parseTimeField(this,'recipe-hours-rise-h','recipe-hours-rise-m')">
+          <input id="recipe-voice-rise" type="text" placeholder="es: 2 ore" style="flex:1;background:#1a1d2e;border:1px solid #4a4d5a;color:#fbbf24;padding:8px 10px;border-radius:8px;font-family:inherit;font-size:14px;outline:none;" oninput="parseTimeField(this,'recipe-hours-rise-h','recipe-hours-rise-m')">
           <div id="recipe-rise-display" style="font-size:12px;color:#c8a96e;min-width:60px;text-align:right;"></div>
         </div>
       </div>
@@ -3335,8 +3301,7 @@ async function pubblicaSuGitHub() {
       <div style="display:flex;gap:8px;align-items:flex-end;">
         <div style="flex:1;">
           <div style="font-size:9px;color:#fff;letter-spacing:1px;margin-bottom:4px;">QUANTITÀ</div>
-          <input id="ing-qty-input" type="number" min="0.1" step="0.1" placeholder="Es: 250"
-            style="width:100%;background:#1a1d2e;border:1px solid #5a5d6a;color:#22c55e;padding:8px 10px;border-radius:8px;font-family:inherit;font-size:15px;font-weight:700;outline:none;text-align:right;">
+          <input id="ing-qty-input" type="number" min="0.1" step="0.1" placeholder="Es: 250" style="width:100%;background:#1a1d2e;border:1px solid #5a5d6a;color:#22c55e;padding:8px 10px;border-radius:8px;font-family:inherit;font-size:15px;font-weight:700;outline:none;text-align:right;">
         </div>
         <div style="flex:1;">
           <div style="font-size:9px;color:#fff;letter-spacing:1px;margin-bottom:4px;">UNITÀ</div>
@@ -3348,8 +3313,7 @@ async function pubblicaSuGitHub() {
             <option value="pz">pz</option>
           </select>
         </div>
-        <button onclick="addIngredientToRecipe()"
-          style="background:#22c55e;border:none;color:#fff;width:44px;height:38px;border-radius:8px;font-size:20px;cursor:pointer;flex-shrink:0;">＋</button>
+        <button onclick="addIngredientToRecipe()" style="background:#22c55e;border:none;color:#fff;width:44px;height:38px;border-radius:8px;font-size:20px;cursor:pointer;flex-shrink:0;">＋</button>
       </div>
     </div>
 
@@ -3389,8 +3353,7 @@ async function pubblicaSuGitHub() {
     <div style="display:flex;gap:10px;margin-bottom:20px;">
       <div style="flex:2;">
         <div style="font-size:9px;color:#fff;letter-spacing:1px;margin-bottom:6px;">QUANTITÀ</div>
-        <input id="edit-ing-qty" type="number" min="0.1" step="0.1"
-          style="width:100%;background:#13151f;border:1px solid #4a4d5a;color:#22c55e;padding:12px;border-radius:10px;font-family:inherit;font-size:22px;font-weight:700;outline:none;text-align:right;">
+        <input id="edit-ing-qty" type="number" min="0.1" step="0.1" style="width:100%;background:#13151f;border:1px solid #4a4d5a;color:#22c55e;padding:12px;border-radius:10px;font-family:inherit;font-size:22px;font-weight:700;outline:none;text-align:right;">
       </div>
       <div style="flex:1;">
         <div style="font-size:9px;color:#fff;letter-spacing:1px;margin-bottom:6px;">UNITÀ</div>
@@ -3456,9 +3419,7 @@ async function pubblicaSuGitHub() {
     <tbody id="table-body"></tbody>
   </table>
   <div id="add-row-bar">
-    <input id="new-product-input" type="text" placeholder="Nuovo articolo..."
-      oninput="this.value=this.value.toUpperCase()"
-      onkeydown="if(event.key==='Enter') addProduct()">
+    <input id="new-product-input" type="text" placeholder="Nuovo articolo..." oninput="this.value=this.value.toUpperCase()" onkeydown="if(event.key==='Enter') addProduct()">
     <button class="btn-add" onclick="addProduct()">＋ Aggiungi articolo</button>
   </div>
 </div>
@@ -3468,12 +3429,11 @@ async function pubblicaSuGitHub() {
   <div class="modal" onclick="event.stopPropagation()">
     <div class="modal-label">Nuovo Fornitore</div>
     <h2>Aggiungi fornitore</h2>
-    <input id="new-supplier-input" type="text" placeholder="Nome fornitore..."
-      onkeydown="if(event.key==='Enter') confirmAddSupplier()">
+    <input id="new-supplier-input" type="text" placeholder="Nome fornitore..." onkeydown="if(event.key==='Enter') confirmAddSupplier()">
     <div id="supplier-error" style="color:#f87171;font-size:12px;margin-bottom:10px;display:none;"></div>
     <div class="modal-btns">
       <button class="btn-confirm" onclick="confirmAddSupplier()">✓ Aggiungi</button>
-      <button class="btn-cancel"  onclick="closeSupplierModal()">Annulla</button>
+      <button class="btn-cancel" onclick="closeSupplierModal()">Annulla</button>
     </div>
   </div>
 </div>
@@ -3486,7 +3446,7 @@ async function pubblicaSuGitHub() {
     <p style="color:#aaa;font-size:12px;margin-bottom:12px;line-height:1.6;">
       Premi <strong style="color:#c8a96e">Copia tutto</strong>, poi vai nella chat con Claude e incolla. Claude vedrà tutte le tue modifiche.
     </p>
-    <textarea id="invia-textarea" readonly></textarea>
+    <textarea id="invia-textarea" readonly=""></textarea>
     <div class="modal-btns">
       <button class="btn-confirm btn-copy" onclick="copyData()">📋 Copia tutto</button>
       <button class="btn-cancel" onclick="closeInviaModal()">Chiudi</button>
@@ -3509,16 +3469,14 @@ async function pubblicaSuGitHub() {
     <div id="inv-ambig-price" style="font-size:13px;color:#22c55e;margin-bottom:20px;"></div>
     <div style="font-size:12px;color:#888;margin-bottom:12px;">A quale articolo del tuo archivio corrisponde?</div>
     <div id="inv-ambig-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px;"></div>
-    <button onclick="resolveInvoiceAmbig('__new__')"
-      style="width:100%;padding:12px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:#fbbf24;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer;margin-bottom:8px;">
+    <button onclick="resolveInvoiceAmbig('__new__')" style="width:100%;padding:12px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:#fbbf24;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer;margin-bottom:8px;">
       ➕ Crea nuovo articolo
     </button>
-    <button onclick="resolveInvoiceAmbig('__skip__')"
-      style="width:100%;padding:12px;background:none;border:1px solid #2a2d3a;color:#555;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer;">
+    <button onclick="resolveInvoiceAmbig('__skip__')" style="width:100%;padding:12px;background:none;border:1px solid #2a2d3a;color:#555;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer;">
       Ignora
     </button>
   </div>
 </div>
 
-</body>
-</html>
+
+</body></html>
