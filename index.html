@@ -453,8 +453,8 @@ body { padding-bottom: 70px; }
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;">
 
     <!-- 🎤 RICERCA VOCALE -->
-    <button id="home-mic-btn" onclick="toggleHomeMic()" style="background:#13151f;border:2px solid rgba(251,191,36,0.3);border-radius:16px;padding:28px 16px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all 0.2s;">
-      <div id="home-mic-icon" style="width:56px;height:56px;background:rgba(251,191,36,0.12);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+    <button id="home-mic-btn" onclick="toggleHomeMic()" style="background: rgb(19, 21, 31); border: 2px solid rgba(251, 191, 36, 0.3); border-radius: 16px; padding: 28px 16px; display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: 0.2s;">
+      <div id="home-mic-icon" style="width: 56px; height: 56px; background: rgba(251, 191, 36, 0.12); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="#fbbf24"><path d="M12 1a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V5a4 4 0 0 0-4-4zm-2 4a2 2 0 0 1 4 0v6a2 2 0 0 1-4 0V5zm-5 6a1 1 0 0 1 2 0 5 5 0 0 0 10 0 1 1 0 0 1 2 0 7 7 0 0 1-6 6.92V20h2a1 1 0 0 1 0 2H9a1 1 0 0 1 0-2h2v-2.08A7 7 0 0 1 5 11z"></path></svg>
       </div>
       <div style="font-size:13px;font-weight:700;color:#fbbf24;letter-spacing:1px;">CERCA</div>
@@ -490,12 +490,12 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Risultati ricerca vocale -->
-  <div id="home-search-result" style="display:none;">
+  <div id="home-search-result" style="display: block;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <div id="home-search-label" style="font-size:13px;color:#fbbf24;font-weight:600;"></div>
+      <div id="home-search-label" style="font-size:13px;color:#fbbf24;font-weight:600;">🔍 "burro" — 3 articoli trovati</div>
       <button onclick="chiudiRicercaVocale()" style="background:none;border:1px solid #333;color:#888;border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;">✖ Chiudi</button>
     </div>
-    <div id="home-search-list"></div>
+    <div id="home-search-list"><div style="background: rgb(19, 21, 31); border: 1px solid rgb(42, 45, 58); border-radius: 10px; padding: 14px; margin-bottom: 8px; cursor: pointer;"><div style="font-size:15px;font-weight:700;color:#e8e0d0;margin-bottom:10px;">BURRO 82,5%</div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1e2030;"><span style="font-size:13px;color:#4ade80;">🏆 TAVI</span><span style="font-size:15px;font-weight:700;color:#4ade80;">€ 5.40</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1e2030;"><span style="font-size:13px;color:#e8e0d0;">ROSSETTO</span><span style="font-size:15px;font-weight:700;color:#e8e0d0;">€ 6.00</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1e2030;"><span style="font-size:13px;color:#e8e0d0;">GALLO</span><span style="font-size:15px;font-weight:700;color:#e8e0d0;">€ 7.71</span></div></div><div style="background: rgb(19, 21, 31); border: 1px solid rgb(42, 45, 58); border-radius: 10px; padding: 14px; margin-bottom: 8px; cursor: pointer;"><div style="font-size:15px;font-weight:700;color:#e8e0d0;margin-bottom:10px;">BURRO ANIDRO</div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1e2030;"><span style="font-size:13px;color:#4ade80;">🏆 TAVI</span><span style="font-size:15px;font-weight:700;color:#4ade80;">€ 10.90</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1e2030;"><span style="font-size:13px;color:#e8e0d0;">ROSSETTO</span><span style="font-size:15px;font-weight:700;color:#e8e0d0;">€ 11.00</span></div></div><div style="background: rgb(19, 21, 31); border: 1px solid rgb(42, 45, 58); border-radius: 10px; padding: 14px; margin-bottom: 8px; cursor: pointer;"><div style="font-size:15px;font-weight:700;color:#e8e0d0;margin-bottom:10px;">BURRO PARMAREGGIO</div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1e2030;"><span style="font-size:13px;color:#4ade80;">🏆 TAVI</span><span style="font-size:15px;font-weight:700;color:#4ade80;">€ 5.50</span></div><div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1e2030;"><span style="font-size:13px;color:#e8e0d0;">GALLO</span><span style="font-size:15px;font-weight:700;color:#e8e0d0;">€ 8.12</span></div></div></div>
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
