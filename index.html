@@ -2693,8 +2693,10 @@ function switchTab(tab) {
     if (page) page.classList.toggle('active', t === tab);
     if (btn) btn.classList.toggle('active', t === tab);
   });
-  document.getElementById('header').style.display = tab === 'prezzi' ? '' : 'none';
-  document.getElementById('controls').style.display = tab === 'prezzi' ? '' : 'none';
+  const headerEl = document.getElementById('header');
+  const controlsEl = document.getElementById('controls');
+  if (headerEl) headerEl.style.display = tab === 'prezzi' ? '' : 'none';
+  if (controlsEl) controlsEl.style.display = tab === 'prezzi' ? '' : 'none';
   if (tab === 'ricette') renderRecipes();
   if (tab === 'catalogo') { if (typeof renderCatalogo === 'function') renderCatalogo(); }
 }
@@ -3736,6 +3738,20 @@ function showToast(msg) {
 }
 
 function renderCatalogo() {
+  // Sync suppliers from main app
+  if (typeof allSuppliers !== 'undefined') {
+    allSuppliers.filter(s => s && s.trim()).forEach(s => {
+      if (!suppliers.includes(s)) suppliers.push(s);
+    });
+  }
+  // Sync products from rawData
+  if (typeof rawData !== 'undefined') {
+    rawData.forEach(row => {
+      if (!data.find(d => d.p === row.product)) {
+        data.push({ p: row.product, s: {} });
+      }
+    });
+  }
   if (typeof buildTable === 'function') buildTable();
 }
 
