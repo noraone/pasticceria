@@ -1651,10 +1651,7 @@ function parseAndPreview() {
     return;
   }
 
-  // Open confirmation modal
-  openConfirmModal(supplier, pendingUpdates);
-
-  // Also keep inline preview for reference
+  // Mostra direttamente la preview inline — no modal separata
   const list = document.getElementById('update-preview-list');
   list.innerHTML = '';
   pendingUpdates.forEach(u => {
