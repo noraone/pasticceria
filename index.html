@@ -1549,13 +1549,19 @@ function parseAndPreview() {
     t = t.replace(new RegExp('\\b' + word + '\\b', 'g'), String(val));
   }
 
-  // "21 e 80" / "21 e 8" / "6 e 50" → 21.80 / 21.8 / 6.50
-  t = t.replace(/(\d+)\s+e\s+(\d{1,2})\b/g, '$1.$2');
+  // "2 e 80" / "2e80" / "21 e 8" → 2.80 / 2.80 / 21.8
+  t = t.replace(/(\d+)\s*e\s*(\d{1,2})\b/g, '$1.$2');
 
-  // "virgola" / "punto" / "e" / ":" between digits
+  // "virgola" / "punto" between digits
   t = t.replace(/(\d+)\s*(virgola|punto)\s*(\d+)/g, '$1.$3');
   t = t.replace(/(\d+):(\d+)/g, '$1.$2');   // 23:48 → 23.48
   t = t.replace(/(\d+),(\d+)/g, '$1.$2');
+  
+  // Caso speciale: numero attaccato es "280" quando dovrebbe essere "2.80"
+  // Se un numero è tra 100-999 ma il prodotto suggerisce un prezzo piccolo, non toccare
+  // Invece gestiamo "virgola ottanta" → ".80" ecc
+  t = t.replace(/virgola\s+(\d+)/g, '.$1');
+  t = t.replace(/punto\s+(\d+)/g, '.$1');
 
   // Cleanup % and extra spaces
   t = t.replace(/%/g, '');
