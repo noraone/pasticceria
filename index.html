@@ -1792,22 +1792,23 @@ async function analizzaFotoFattura(input, isExtraPage) {
     const prompt = `Sei un esperto di lettura fatture italiane. Analizza questa fattura per una pasticceria. ${supplierCtx}
 Archivio prodotti: ${productList}
 
-REGOLA FONDAMENTALE SUI PREZZI:
-La tabella ha queste colonne nell'ordine: DESCRIZIONE | UM | QUANTITÀ | PREZZO UNITARIO | IMPORTO | IVA
-- Leggi SOLO la colonna "PREZZO UNITARIO" (o "PREZZO UNIT." o "P.UNIT") — è la quarta colonna
-- NON leggere la colonna QUANTITÀ (terza colonna) — quella indica i sacchi/colli ordinati
-- NON leggere la colonna IMPORTO — quello è QUANTITÀ x PREZZO e non serve
-- Il prezzo unitario per farine è tipicamente un numero grande come 750, 840, 1200 se in €/tonnellata
-- NON arrotondare mai i prezzi — usa esattamente il valore scritto in fattura con tutti i decimali
+STRUTTURA TABELLA FATTURA:
+La tabella articoli ha queste colonne: CODICE | DESCRIZIONE PRODOTTO | UM | QUANTITÀ | PREZZO UNITARIO | IMPORTO | IVA
+- Ogni riga articolo ha: codice breve | nome lungo con lotto e scadenza | unità | quantità sacchi | prezzo €/t o €/kg | totale riga | aliquota IVA
+- Dopo ogni riga articolo ci può essere una riga di testo con info vettori/trasporto — IGNORALA completamente
 
-CONVERSIONE UNITÀ (colonna UM):
-- UM = "t" o "TON": prezzo in €/tonnellata → dividi per 1000 per €/kg (es: 750,00 → 0,750)
-- UM = "kg" o "KG": già in €/kg, lascia invariato
-- UM = "l" o "L": in €/litro, lascia invariato
+REGOLE PREZZI:
+1. Leggi SOLO la colonna "PREZZO UNITARIO" — è il 5° valore nella riga
+2. NON leggere la colonna QUANTITÀ (4° valore) — indica i sacchi ordinati (es. 0,4000)
+3. NON leggere la colonna IMPORTO (6° valore) — è quantità x prezzo
+4. NON arrotondare mai — usa esattamente il numero scritto con tutti i decimali
+5. Se UM = "t": dividi prezzo per 1000 per avere €/kg (es: 750,00 → 0,750; 730,00 → 0,730)
+6. Se UM = "kg": lascia invariato
 
 NOME ARTICOLO:
-- Prendi solo il nome commerciale, escludi lotto, scadenza, numero sacchi
-- Es: "FARINA DI GRANO TEN. VIOLA NOVELLI TIPO 00 KG 25" → "FARINA VIOLA NOVELLI"
+- Prendi solo il nome commerciale dalla DESCRIZIONE, escludi LOTTO, SAC., SCAD., KG 25 ecc.
+- Es: "FARINA DI GRANO TEN. VIOLA NOVELLI TIPO 00 KG 25 - LOTTO..." → "FARINA VIOLA NOVELLI"
+- Es: "GRANITO DI GRANO TEN. TIPO 00 KG 25 - LOTTO..." → "GRANITO"
 
 Rispondi SOLO con JSON valido, zero testo aggiuntivo:
 {"fornitore":"nome","data":"YYYY-MM-DD","prodotti":[{"nome_fattura":"nome articolo breve","prodotto_archivio":"nome archivio o null","prezzo_kg":0.000,"unita_originale":"t","prezzo_originale":0.00}]}`;
