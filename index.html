@@ -1625,7 +1625,7 @@ function parseAndPreview() {
   // Step 2: find unrecognized tokens — split text into word+number pairs
   const unrecognized = [];
   // Extract all "word(s) number" pairs from text
-  const tOrig = rawText.toLowerCase();
+  const tOrig = t; // usa testo normalizzato (con "e"→"." già convertita)
   const pairRegex = /([a-zàèéìòù][a-zàèéìòùa-z\s]{1,40}?)\s+(\d+[.,]\d+|\d{1,5})/g;
   let tm;
   while ((tm = pairRegex.exec(tOrig)) !== null) {
