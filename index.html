@@ -782,6 +782,10 @@ body { padding-bottom: 70px; }
         style="flex:1;padding:10px;background:rgba(251,191,36,0.12);border:2px solid rgba(251,191,36,0.3);color:#fbbf24;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;">
         🔍 Analizza
       </button>
+      <button onclick="cancellaRegistrazione()"
+        style="padding:10px 14px;background:rgba(248,113,113,0.1);border:2px solid rgba(248,113,113,0.3);color:#f87171;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;">
+        ✖
+      </button>
     </div>
     <!-- Foto fattura — nascosta, codice conservato per uso futuro -->
     <input type="file" id="foto-fattura-input" accept="image/*" capture="environment" style="display:none;" onchange="analizzaFotoFattura(this, false)">
@@ -1486,6 +1490,20 @@ function resolveAlias(word) {
   // Check if any rawData product contains this word
   const match = rawData.find(r => r.product.toLowerCase().includes(w) && w.length >= 4);
   return match ? match.product : null;
+}
+
+function cancellaRegistrazione() {
+  // Ferma registrazione se attiva
+  if (typeof isRecordingUpdate !== 'undefined' && isRecordingUpdate) {
+    toggleRecordUpdate();
+  }
+  // Svuota il campo testo
+  document.getElementById('update-transcript').value = '';
+  // Nascondi preview
+  document.getElementById('update-preview').style.display = 'none';
+  document.getElementById('update-error').style.display = 'none';
+  // Reset pending updates
+  if (typeof pendingUpdates !== 'undefined') pendingUpdates.length = 0;
 }
 
 function parseAndPreview() {
