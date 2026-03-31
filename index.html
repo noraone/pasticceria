@@ -334,6 +334,18 @@
   100% { transform: scale(1); opacity: 1; }
 }
 .icon-pulse { animation: iconPulse 0.3s ease; }
+@keyframes micListening {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(251,191,36,0.4); }
+  50% { transform: scale(1.15); box-shadow: 0 0 0 12px rgba(251,191,36,0); }
+}
+.mic-listening {
+  animation: micListening 1s ease-in-out infinite !important;
+  background: rgba(251,191,36,0.4) !important;
+}
+.btn-listening {
+  border-color: #fbbf24 !important;
+  background: rgba(251,191,36,0.08) !important;
+}
 </style>
 <script>
 // API key setup
@@ -800,48 +812,49 @@ body { padding-bottom: 70px; }
 
 <script>
 const rawData = [
-  { product: "ARANCIO CANDITO", date: "2025-10-01", TAVI: 6.15 },
-  { product: "BURRO 82,5%", date: "2025-10-07", TAVI: 5.4, ROSSETTO: 6.0, GALLO: 7.71 },
-  { product: "BURRO ANIDRO", date: "2025-10-06", TAVI: 10.9, ROSSETTO: 11.0 },
-  { product: "BURRO PARMAREGGIO", date: "2025-10-02", TAVI: 5.5, GALLO: 8.12 },
-  { product: "BOESON", date: "2025-09-24", TAVI: 5.71 },
-  { product: "CANNELLA", date: "2025-10-01", TAVI: 7.25 },
-  { product: "CIOCCOLATO SURROGATO", date: "2025-10-01", TAVI: 3.9 },
-  { product: "CIOCCOLATO CRUNC", date: "2025-09-19", MIRO: 22.84 },
-  { product: "CEDRO", date: "2025-09-25", TAVI: 6.65 },
-  { product: "CACAO", date: "2025-09-25", TAVI: 17.5 },
-  { product: "FICHI", date: "2025-09-24", TAVI: 6.95 },
-  { product: "FARINA DI NOCCIOLE", date: "2025-10-03", TAVI: 16.5, ROSSETTO: 16.0 },
+  { product: "ARANCIO CANDITO", date: "2025-10-01" },
+  { product: "BURRO 82,5%", date: "2025-10-07" },
+  { product: "BURRO ANIDRO", date: "2025-10-06" },
+  { product: "BURRO PARMAREGGIO", date: "2025-10-02" },
+  { product: "BOESON", date: "2025-09-24" },
+  { product: "CANNELLA", date: "2025-10-01" },
+  { product: "CIOCCOLATO SURROGATO", date: "2025-10-01" },
+  { product: "CIOCCOLATO CRUNC", date: "2025-09-19" },
+  { product: "CEDRO", date: "2025-09-25" },
+  { product: "CACAO", date: "2025-09-25" },
+  { product: "FICHI", date: "2025-09-24" },
+  { product: "FARINA DI NOCCIOLE", date: "2025-10-03" },
   { product: "FARINA VIOLA", date: "2025-09-23" },
   { product: "FARINA ORO", date: "2025-10-07" },
   { product: "FARINA INTEGRALE", date: "2025-09-30" },
-  { product: "FARINA DI RISO VENERE", date: "2025-09-23", TAVI: 1.88 },
+  { product: "FARINA DI RISO VENERE", date: "2025-09-23" },
   { product: "FARINA TIPO 2", date: "2025-09-22" },
-  { product: "FIOCCHI PATATE", date: "2025-10-04", TAVI: 3.55, ROSSETTO: 3.4 },
-  { product: "GRANELLA DI NOCCIOLE", date: "2025-10-05", TAVI: 16.2, ROSSETTO: 18.7 },
-  { product: "LIEVITO", date: "2025-10-06", ROSSETTO: 2.95, CAVIGLIA: 2.55 },
-  { product: "MARGARINA", date: "2025-09-30", TAVI: 2.8 },
-  { product: "MARSALA", date: "2025-09-27", TAVI: 8.72 },
-  { product: "MANDORLE", date: "2025-09-26", TAVI: 8.4 },
-  { product: "MARMELLATA", date: "2025-09-29", TAVI: 2.98 },
-  { product: "MALTO", date: "2025-09-29", ROSSETTO: 1.69 },
-  { product: "NOCI", date: "2025-09-26", TAVI: 13.5 },
+  { product: "FIOCCHI PATATE", date: "2025-10-04" },
+  { product: "GRANELLA DI NOCCIOLE", date: "2025-10-05" },
+  { product: "LIEVITO", date: "2025-10-06" },
+  { product: "MARGARINA", date: "2025-09-30" },
+  { product: "MARSALA", date: "2025-09-27" },
+  { product: "MANDORLE", date: "2025-09-26" },
+  { product: "MARMELLATA", date: "2025-09-29" },
+  { product: "MALTO", date: "2025-09-29" },
+  { product: "NOCI", date: "2025-09-26" },
   { product: "OLIO SANSA", date: "2025-09-22" },
-  { product: "OLIVE 6 kg", date: "2025-09-21", ROSSETTO: 33.83 },
-  { product: "POLPA", date: "2025-09-21", ROSSETTO: 13.5 },
-  { product: "PINOLI", date: "2025-10-05", TAVI: 69.0 },
-  { product: "PETIT FOURS", date: "2025-09-20", TAVI: 9.85 },
+  { product: "OLIVE 6 kg", date: "2025-09-21" },
+  { product: "POLPA", date: "2025-09-21" },
+  { product: "PINOLI", date: "2025-10-05" },
+  { product: "PETIT FOURS", date: "2025-09-20" },
   { product: "PROSCIUTTO COTTO", date: "2025-10-02" },
-  { product: "PASTA SCORZONE ARANCIA", date: "2025-09-19", MIRO: 13.79 },
-  { product: "STRACCHINO", date: "2025-10-04", GALLO: 6.63 },
-  { product: "SALE", date: "2025-09-18", ROSSETTO: 0.36 },
-  { product: "SEMI DI ANICE", date: "2025-09-20", TAVI: 9.98 },
-  { product: "VANILLINA", date: "2025-09-28", TAVI: 4.1 },
-  { product: "ZUCCHERO GRANELLA", date: "2025-09-28", TAVI: 1.98 },
-  { product: "ZUCCHERO A VELO", date: "2025-09-27", TAVI: 1.86 },
-  { product: "ZUCCHERO SEMOLATO", date: "2025-10-03", TAVI: 0.75, ROSSETTO: 0.86 },
-  { product: "TUORLO", date: "2025-09-18", Frascheri: 10.28 },
-  { product: "PERE CUBETTI", date: "2025-10-07" }
+  { product: "PASTA SCORZONE ARANCIA", date: "2025-09-19" },
+  { product: "STRACCHINO", date: "2025-10-04" },
+  { product: "SALE", date: "2025-09-18" },
+  { product: "SEMI DI ANICE", date: "2025-09-20" },
+  { product: "VANILLINA", date: "2025-09-28" },
+  { product: "ZUCCHERO GRANELLA", date: "2025-09-28" },
+  { product: "ZUCCHERO A VELO", date: "2025-09-27" },
+  { product: "ZUCCHERO SEMOLATO", date: "2025-10-03" },
+  { product: "TUORLO", date: "2025-09-18" },
+  { product: "PERE CUBETTI", date: "2025-10-07" },
+  { product: "GRANITO", date: "2026-03-24" }
 ];
 
 const allSuppliers = ["TAVI", "ROSSETTO", "CAVIGLIA", "SIGNETTI", "JONNY", "GALLO", "GAilli", "MIRO", "Frascheri", "Barbieri", "Novelli"];
@@ -1095,9 +1108,9 @@ function toggleHomeMic() {
   homeMicRecognition.onstart = () => {
     homeMicListening = true;
     const icon = document.getElementById('home-mic-icon');
-    icon.style.background = 'rgba(251,191,36,0.4)';
-    icon.style.animation = 'pulse 1s infinite';
-    document.getElementById('home-mic-btn').style.borderColor = '#fbbf24';
+    icon.classList.add('mic-listening');
+    document.getElementById('home-mic-btn').classList.add('btn-listening');
+    document.getElementById('home-mic-btn').querySelector('div:last-child').textContent = '🎤 In ascolto...';
   };
   
   homeMicRecognition.onresult = (e) => {
@@ -1108,9 +1121,9 @@ function toggleHomeMic() {
   homeMicRecognition.onend = () => {
     homeMicListening = false;
     const icon = document.getElementById('home-mic-icon');
-    icon.style.background = 'rgba(251,191,36,0.12)';
-    icon.style.animation = '';
-    document.getElementById('home-mic-btn').style.borderColor = 'rgba(251,191,36,0.3)';
+    icon.classList.remove('mic-listening');
+    document.getElementById('home-mic-btn').classList.remove('btn-listening');
+    document.getElementById('home-mic-btn').querySelector('div:last-child').textContent = 'Dì un articolo';
   };
   
   homeMicRecognition.onerror = () => homeMicRecognition.onend();
