@@ -3836,13 +3836,22 @@ function renderCatalogo() {
       if (!suppliers.includes(s)) suppliers.push(s);
     });
   }
-  // Sync products from rawData
+  // Sync products from rawData: aggiungi nuovi, rimuovi eliminati
   if (typeof rawData !== 'undefined') {
+    const productNames = rawData.map(r => r.product);
+    // Aggiungi quelli mancanti
     rawData.forEach(row => {
       if (!data.find(d => d.p === row.product)) {
         data.push({ p: row.product, s: {} });
       }
     });
+    // Rimuovi quelli non più in rawData (rinominati o eliminati)
+    for (let i = data.length - 1; i >= 0; i--) {
+      if (!productNames.includes(data[i].p)) {
+        data.splice(i, 1);
+      }
+    }
+    save();
   }
   if (typeof buildTable === 'function') buildTable();
 }
