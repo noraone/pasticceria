@@ -417,9 +417,7 @@ window.saveToFirebase = async function() {
     });
     if (resp.ok) {
       const _stableHash = (data) => JSON.stringify(
-        (data || []).map(r => {
-          const s = {}; Object.keys(r).sort().forEach(k => s[k] = r[k]); return s;
-        }).sort((a,b) => (a.product||'').localeCompare(b.product||''))
+        (data || []).map(r => { const s = {}; Object.keys(r).sort().forEach(k => s[k] = r[k]); return s; }).sort((a,b) => (a.product||'').localeCompare(b.product||''))
       );
       if (el) { el.textContent = '☁️ Salvato'; el.style.color = '#22c55e'; }
       _lastSyncData = _stableHash(rawData);
@@ -436,8 +434,7 @@ window.saveToFirebase = async function() {
 };
 
 window.loadFromSync = async function() {
-  // Non sincronizzare mentre un salvataggio è in corso (race condition)
-  if (_fbSaving) return;
+  if (_fbSaving) return; // non sovrascrivere durante un salvataggio
   const el = document.getElementById('fb-status');
   try {
     const resp = await fetch(_FB_BASE + '?key=' + _FB_API_KEY);
@@ -455,15 +452,11 @@ window.loadFromSync = async function() {
     const newSuppliers = _fromFirestore(doc.fields.allSuppliers);
     const newAliases = _fromFirestore(doc.fields.productAliases);
 
-    // Hash stabile: ordina chiavi e prodotti per confronto corretto
     const _stableHash = (data) => JSON.stringify(
-      (data || []).map(r => {
-        const s = {}; Object.keys(r).sort().forEach(k => s[k] = r[k]); return s;
-      }).sort((a,b) => (a.product||'').localeCompare(b.product||''))
+      (data || []).map(r => { const s = {}; Object.keys(r).sort().forEach(k => s[k] = r[k]); return s; }).sort((a,b) => (a.product||'').localeCompare(b.product||''))
     );
     const newHash = _stableHash(newRaw);
-
-    if (newHash === _lastSyncData) return; // nessun cambiamento
+    if (newHash === _lastSyncData) return;
 
     if (newRaw && newRaw.length > 0) {
       rawData.length = 0;
@@ -639,7 +632,7 @@ body { padding-bottom: 70px; }
       <input id="grid-search" type="text" placeholder="🔍 Cerca articolo..." oninput="renderGridTable()"
         style="width:100%;padding:9px 12px;background:#13151f;border:1px solid #2a2d3a;border-radius:8px;color:#e8e0d0;font-family:inherit;font-size:13px;outline:none;box-sizing:border-box;">
     </div>
-    <div style="overflow-x:auto;border:1px solid #2a2d3a;border-radius:10px;">
+    <div style="overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 220px);border:1px solid #2a2d3a;border-radius:10px;">
       <table id="grid-table" style="border-collapse:collapse;font-size:12px;min-width:100%;">
         <thead id="grid-thead"></thead>
         <tbody id="grid-tbody"></tbody>
@@ -999,15 +992,17 @@ let gridEditTarget = null;
 function renderGridTable() {
   const q = (document.getElementById('grid-search')?.value || '').toLowerCase();
   const suppliers = allSuppliers.filter(s => s && s.trim());
-  const products = q
+  // Ordina alfabeticamente: prodotti simili (es. OLIO SANSA, OLIO DI OLIVA) stanno vicini
+  const products = (q
     ? rawData.filter(r => r.product.toLowerCase().includes(q))
-    : rawData;
+    : [...rawData]
+  ).sort((a, b) => a.product.localeCompare(b.product, 'it'));
 
-  // Header
+  // Header — sticky verticale
   const thead = document.getElementById('grid-thead');
-  thead.innerHTML = '<tr style="background:#1a1d2e;">'
-    + '<th style="text-align:left;padding:9px 10px;color:#888;font-size:10px;letter-spacing:1px;border-bottom:1px solid #2a2d3a;position:sticky;left:0;background:#1a1d2e;min-width:110px;">ARTICOLO</th>'
-    + suppliers.map(s => `<th style="text-align:center;padding:9px 6px;color:#fbbf24;font-size:10px;letter-spacing:1px;border-bottom:1px solid #2a2d3a;min-width:72px;">${s}</th>`).join('')
+  thead.innerHTML = '<tr>'
+    + '<th style="text-align:left;padding:9px 10px;color:#888;font-size:10px;letter-spacing:1px;border-bottom:1px solid #2a2d3a;position:sticky;top:0;left:0;z-index:3;background:#1a1d2e;min-width:110px;">ARTICOLO</th>'
+    + suppliers.map(s => `<th style="text-align:center;padding:9px 6px;color:#fbbf24;font-size:10px;letter-spacing:1px;border-bottom:1px solid #2a2d3a;position:sticky;top:0;z-index:2;background:#1a1d2e;min-width:72px;">${s}</th>`).join('')
     + '</tr>';
 
   // Body
@@ -2394,7 +2389,6 @@ function saveNewArticle() {
   render();
   updateStats();
   if (window.saveToFirebase) window.saveToFirebase();
-  // Mostra subito il nuovo articolo nella ricerca home
   mostraRisultatiRicercaVocale(name);
   document.getElementById('home-text-search').value = name;
   document.getElementById('toast-msg').textContent = name + ' aggiunto e salvato!';
