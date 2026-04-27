@@ -2377,6 +2377,8 @@ function saveNewArticle() {
   rawData.push(newRow);
   closeNewArticleModal();
   render();
+  updateStats();
+  if (window.saveToFirebase) window.saveToFirebase();
   document.getElementById('toast-msg').textContent = name + ' aggiunto!';
   const t = document.getElementById('toast'); t.style.display='block';
   setTimeout(() => t.style.display='none', 3000);
