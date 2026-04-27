@@ -638,7 +638,10 @@ body { padding-bottom: 70px; }
         <tbody id="grid-tbody"></tbody>
       </table>
     </div>
-    <div style="margin-top:8px;font-size:11px;color:#555;text-align:center;">Tocca una cella per modificare il prezzo</div>
+    <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
+      <div style="font-size:11px;color:#555;">Tocca nome per rinominare · cella per prezzo</div>
+      <button onclick="openNewArticleModal()" style="padding:8px 14px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);color:#4ade80;border-radius:8px;font-family:inherit;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;">＋ Nuovo articolo</button>
+    </div>
   </div>
 </div>
 
@@ -1012,6 +1015,9 @@ function renderGridTable() {
 
   // Header — sticky verticale
   const thead = document.getElementById('grid-thead');
+  thead.style.position = 'sticky';
+  thead.style.top = '0';
+  thead.style.zIndex = '2';
   thead.innerHTML = '<tr>'
     + '<th style="text-align:left;padding:9px 10px;color:#888;font-size:10px;letter-spacing:1px;border-bottom:1px solid #2a2d3a;position:sticky;top:0;left:0;z-index:3;background:#1a1d2e;min-width:110px;">ARTICOLO</th>'
     + suppliers.map(s => `<th style="text-align:center;padding:9px 6px;color:#fbbf24;font-size:10px;letter-spacing:1px;border-bottom:1px solid #2a2d3a;position:sticky;top:0;z-index:2;background:#1a1d2e;min-width:72px;">${s}</th>`).join('')
@@ -1027,7 +1033,7 @@ function renderGridTable() {
 
     const tr = document.createElement('tr');
     tr.style.borderBottom = '1px solid #1a1d2e';
-    let html = `<td style="padding:9px 10px;color:#e8e0d0;font-size:12px;font-weight:600;position:sticky;left:0;background:#13151f;border-right:1px solid #2a2d3a;">${row.product}</td>`;
+    let html = `<td style="padding:9px 10px;color:#e8e0d0;font-size:12px;font-weight:600;position:sticky;left:0;background:#13151f;border-right:1px solid #2a2d3a;cursor:pointer;" onclick="openEditPriceModal(this.dataset.p)" data-p="${row.product}">${row.product}</td>`;
     
     suppliers.forEach(s => {
       const v = row[s];
@@ -2670,9 +2676,11 @@ function confermaRinomina() {
   if (!row) return;
   row.product = nuovoNome;
   editingProduct = nuovoNome;
-  render(); updateStats();
+  render();
+  renderGridTable(); // rigenera onclick della griglia col nuovo nome
+  updateStats();
   if (window.saveToFirebase) window.saveToFirebase();
-  closeEditPriceModal(); // chiude subito la modal — sblocca la UI
+  closeEditPriceModal();
   const t = document.getElementById('toast');
   document.getElementById('toast-msg').textContent = '✓ Rinominato in ' + nuovoNome;
   t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000);
