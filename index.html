@@ -1000,6 +1000,9 @@ function renderGridTable() {
 
   // Header — sticky verticale
   const thead = document.getElementById('grid-thead');
+  thead.style.position = 'sticky';
+  thead.style.top = '0';
+  thead.style.zIndex = '2';
   thead.innerHTML = '<tr>'
     + '<th style="text-align:left;padding:9px 10px;color:#888;font-size:10px;letter-spacing:1px;border-bottom:1px solid #2a2d3a;position:sticky;top:0;left:0;z-index:3;background:#1a1d2e;min-width:110px;">ARTICOLO</th>'
     + suppliers.map(s => `<th style="text-align:center;padding:9px 6px;color:#fbbf24;font-size:10px;letter-spacing:1px;border-bottom:1px solid #2a2d3a;position:sticky;top:0;z-index:2;background:#1a1d2e;min-width:72px;">${s}</th>`).join('')
