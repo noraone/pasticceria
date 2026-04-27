@@ -638,10 +638,7 @@ body { padding-bottom: 70px; }
         <tbody id="grid-tbody"></tbody>
       </table>
     </div>
-    <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
-      <div style="font-size:11px;color:#555;">Tocca nome articolo per rinominare · cella per il prezzo</div>
-      <button onclick="openNewArticleModal()" style="padding:8px 14px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);color:#4ade80;border-radius:8px;font-family:inherit;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;">＋ Nuovo articolo</button>
-    </div>
+    <div style="margin-top:8px;font-size:11px;color:#555;text-align:center;">Tocca una cella per modificare il prezzo</div>
   </div>
 </div>
 
@@ -1015,9 +1012,6 @@ function renderGridTable() {
 
   // Header — sticky verticale
   const thead = document.getElementById('grid-thead');
-  thead.style.position = 'sticky';
-  thead.style.top = '0';
-  thead.style.zIndex = '2';
   thead.innerHTML = '<tr>'
     + '<th style="text-align:left;padding:9px 10px;color:#888;font-size:10px;letter-spacing:1px;border-bottom:1px solid #2a2d3a;position:sticky;top:0;left:0;z-index:3;background:#1a1d2e;min-width:110px;">ARTICOLO</th>'
     + suppliers.map(s => `<th style="text-align:center;padding:9px 6px;color:#fbbf24;font-size:10px;letter-spacing:1px;border-bottom:1px solid #2a2d3a;position:sticky;top:0;z-index:2;background:#1a1d2e;min-width:72px;">${s}</th>`).join('')
@@ -1033,7 +1027,7 @@ function renderGridTable() {
 
     const tr = document.createElement('tr');
     tr.style.borderBottom = '1px solid #1a1d2e';
-    let html = `<td style="padding:9px 10px;color:#e8e0d0;font-size:12px;font-weight:600;position:sticky;left:0;background:#13151f;border-right:1px solid #2a2d3a;cursor:pointer;" onclick="openEditPriceModal('${row.product.replace(/'/g,"\'")}')">${row.product}</td>`;
+    let html = `<td style="padding:9px 10px;color:#e8e0d0;font-size:12px;font-weight:600;position:sticky;left:0;background:#13151f;border-right:1px solid #2a2d3a;">${row.product}</td>`;
     
     suppliers.forEach(s => {
       const v = row[s];
@@ -2423,6 +2417,11 @@ function openEditPriceModal(productName) {
   if (!row) return;
 
   document.getElementById('edit-product-title').textContent = productName;
+  // Resetta sempre il campo rinomina
+  const rr = document.getElementById('rinomina-row');
+  if (rr) rr.style.display = 'none';
+  const ri = document.getElementById('rinomina-input');
+  if (ri) { ri.value = ''; ri.style.borderColor = '#c8a96e88'; }
   const list = document.getElementById('edit-prices-list');
   list.innerHTML = '';
 
@@ -2651,11 +2650,12 @@ function pulseAndRun(btn, fn) {
 }
 
 function attivaRinominaArticolo() {
-  document.getElementById('rinomina-row').style.display = 'block';
-  const input = document.getElementById('rinomina-input');
-  input.value = editingProduct || '';
-  input.style.borderColor = '#c8a96e88';
-  setTimeout(() => input.focus(), 100);
+  const rr = document.getElementById('rinomina-row');
+  const ri = document.getElementById('rinomina-input');
+  rr.style.display = 'block';
+  ri.value = editingProduct || '';
+  ri.style.borderColor = '#c8a96e88';
+  setTimeout(() => ri.focus(), 100);
 }
 function annullaRinomina() {
   document.getElementById('rinomina-row').style.display = 'none';
@@ -2682,6 +2682,8 @@ function confermaRinomina() {
 function closeEditPriceModal() {
   document.getElementById('edit-price-bg').style.display = 'none';
   editingProduct = null;
+  const rr = document.getElementById('rinomina-row');
+  if (rr) rr.style.display = 'none';
   // Aggiorna risultati ricerca vocale se visibili
   const searchResult = document.getElementById('home-search-result');
   if (searchResult && searchResult.style.display !== 'none' && _lastHomeQuery) {
