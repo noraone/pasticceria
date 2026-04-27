@@ -2417,7 +2417,6 @@ function openEditPriceModal(productName) {
   if (!row) return;
 
   document.getElementById('edit-product-title').textContent = productName;
-  // Resetta sempre il campo rinomina
   const rr = document.getElementById('rinomina-row');
   if (rr) rr.style.display = 'none';
   const ri = document.getElementById('rinomina-input');
@@ -2671,10 +2670,9 @@ function confermaRinomina() {
   if (!row) return;
   row.product = nuovoNome;
   editingProduct = nuovoNome;
-  document.getElementById('edit-product-title').textContent = nuovoNome;
-  document.getElementById('rinomina-row').style.display = 'none';
   render(); updateStats();
   if (window.saveToFirebase) window.saveToFirebase();
+  closeEditPriceModal(); // chiude subito la modal — sblocca la UI
   const t = document.getElementById('toast');
   document.getElementById('toast-msg').textContent = '✓ Rinominato in ' + nuovoNome;
   t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000);
