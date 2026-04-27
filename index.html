@@ -416,8 +416,13 @@ window.saveToFirebase = async function() {
       body: JSON.stringify(payload)
     });
     if (resp.ok) {
+      const _stableHash = (data) => JSON.stringify(
+        (data || []).map(r => {
+          const s = {}; Object.keys(r).sort().forEach(k => s[k] = r[k]); return s;
+        }).sort((a,b) => (a.product||'').localeCompare(b.product||''))
+      );
       if (el) { el.textContent = '☁️ Salvato'; el.style.color = '#22c55e'; }
-      _lastSyncData = JSON.stringify(rawData);
+      _lastSyncData = _stableHash(rawData);
     } else {
       const err = await resp.json();
       console.warn('Firebase save error:', err);
@@ -431,27 +436,35 @@ window.saveToFirebase = async function() {
 };
 
 window.loadFromSync = async function() {
+  // Non sincronizzare mentre un salvataggio è in corso (race condition)
+  if (_fbSaving) return;
   const el = document.getElementById('fb-status');
   try {
     const resp = await fetch(_FB_BASE + '?key=' + _FB_API_KEY);
     if (resp.status === 404) {
-      // Documento non esiste ancora — primo avvio, non riprovare in loop
       if (el) { el.textContent = '☁️ Pronto'; el.style.color = '#fbbf24'; }
       clearInterval(_syncInterval);
-      _syncInterval = setInterval(window.loadFromSync, 120000); // riprova ogni 2 min
+      _syncInterval = setInterval(window.loadFromSync, 120000);
       return;
     }
     if (!resp.ok) return;
     const doc = await resp.json();
     if (!doc.fields) return;
-    
+
     const newRaw = _fromFirestore(doc.fields.rawData);
     const newSuppliers = _fromFirestore(doc.fields.allSuppliers);
     const newAliases = _fromFirestore(doc.fields.productAliases);
-    const newHash = JSON.stringify(newRaw);
-    
+
+    // Hash stabile: ordina chiavi e prodotti per confronto corretto
+    const _stableHash = (data) => JSON.stringify(
+      (data || []).map(r => {
+        const s = {}; Object.keys(r).sort().forEach(k => s[k] = r[k]); return s;
+      }).sort((a,b) => (a.product||'').localeCompare(b.product||''))
+    );
+    const newHash = _stableHash(newRaw);
+
     if (newHash === _lastSyncData) return; // nessun cambiamento
-    
+
     if (newRaw && newRaw.length > 0) {
       rawData.length = 0;
       newRaw.forEach(r => rawData.push(r));
@@ -2367,19 +2380,24 @@ function saveNewArticle() {
   const errEl = document.getElementById('new-article-error');
 
   if (!name) { errEl.textContent = 'Inserisci il nome articolo.'; errEl.style.display='block'; return; }
-  if (!supplier) { errEl.textContent = 'Seleziona un fornitore.'; errEl.style.display='block'; return; }
+  if (!supplier || supplier === '__new__') { errEl.textContent = 'Seleziona un fornitore valido.'; errEl.style.display='block'; return; }
   if (isNaN(price) || price <= 0) { errEl.textContent = 'Inserisci un prezzo valido.'; errEl.style.display='block'; return; }
   if (rawData.find(r => r.product === name)) { errEl.textContent = 'Articolo già esistente.'; errEl.style.display='block'; return; }
 
   const today = new Date().toISOString().split('T')[0];
   const newRow = { product: name, date: today };
   newRow[supplier] = price;
+  if (!newRow.dates) newRow.dates = {};
+  newRow.dates[supplier] = today;
   rawData.push(newRow);
   closeNewArticleModal();
   render();
   updateStats();
   if (window.saveToFirebase) window.saveToFirebase();
-  document.getElementById('toast-msg').textContent = name + ' aggiunto!';
+  // Mostra subito il nuovo articolo nella ricerca home
+  mostraRisultatiRicercaVocale(name);
+  document.getElementById('home-text-search').value = name;
+  document.getElementById('toast-msg').textContent = name + ' aggiunto e salvato!';
   const t = document.getElementById('toast'); t.style.display='block';
   setTimeout(() => t.style.display='none', 3000);
 }
@@ -3808,8 +3826,8 @@ function salvaToken() {
   localStorage.setItem('gh_token', t);
   document.getElementById('token-setup-bg').style.display = 'none';
   document.getElementById('token-input').value = '';
-  // Avvia aggiornamento dopo aver salvato il token
-  pubblicaSuGitHub();
+  // Apri subito il selettore file
+  setTimeout(() => avviaAggiornamento(), 200);
 }
 
 function apriImpostazioniToken() {
