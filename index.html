@@ -753,9 +753,7 @@ body { padding-bottom: 70px; }
   <div style="overflow-y:auto;flex:1;padding:28px 28px 0 28px;">
     <div style="font-size:9px;letter-spacing:4px;color:#fbbf24;margin-bottom:6px;text-transform:uppercase;">Aggiornamento Prezzi</div>
     <h2 style="font-family:'Playfair Display',serif;font-size:19px;color:#fff;margin-bottom:8px;">Aggiorna prezzi con la voce</h2>
-    <button onclick="resetGeminiKey()" style="width:100%;padding:10px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:#fbbf24;border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer;margin-bottom:12px;">
-      🔑 Reimposta chiave API
-    </button>
+
     <p style="font-size:12px;color:#7a7a8a;margin-bottom:18px;line-height:1.7;">
       1. Scegli il fornitore &nbsp;2. Ditta il testo &nbsp;3. Controlla e applica<br>
       <span style="color:#fbbf24;font-style:italic">Es: "farina di nocciole 6,50 zucchero 0,80 pinoli 65"</span><br>
@@ -2677,7 +2675,7 @@ function confermaRinomina() {
   row.product = nuovoNome;
   editingProduct = nuovoNome;
   render();
-  renderGridTable(); // rigenera onclick della griglia col nuovo nome
+  renderGridTable();
   updateStats();
   if (window.saveToFirebase) window.saveToFirebase();
   closeEditPriceModal();
