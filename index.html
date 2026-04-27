@@ -724,7 +724,19 @@ body { padding-bottom: 70px; }
 <div id="edit-price-bg" onclick="closeEditPriceModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;z-index:200;padding:20px;">
   <div onclick="event.stopPropagation()" style="background:#22253a;border:1px solid rgba(200,169,110,0.35);border-radius:14px;padding:28px;width:100%;max-width:420px;box-shadow:0 40px 80px rgba(0,0,0,0.7);animation:popIn 0.22s ease;">
     <div style="font-size:9px;letter-spacing:4px;color:#c8a96e;margin-bottom:6px;text-transform:uppercase;">Modifica Prezzi</div>
-    <h2 id="edit-product-title" style="font-family:'Playfair Display',serif;font-size:19px;color:#fff;margin-bottom:18px;"></h2>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;">
+      <h2 id="edit-product-title" style="font-family:'Playfair Display',serif;font-size:19px;color:#fff;margin:0;flex:1;"></h2>
+      <button onclick="attivaRinominaArticolo()" id="btn-rinomina" title="Rinomina articolo" style="background:rgba(200,169,110,0.12);border:1px solid rgba(200,169,110,0.3);color:#c8a96e;border-radius:6px;padding:5px 9px;font-size:13px;cursor:pointer;flex-shrink:0;">✏️</button>
+    </div>
+    <div id="rinomina-row" style="display:none;margin-bottom:14px;">
+      <input id="rinomina-input" type="text" placeholder="Nuovo nome..."
+        style="width:100%;background:#13151f;border:1px solid #c8a96e88;color:#fff;padding:9px 12px;border-radius:8px;font-family:inherit;font-size:14px;outline:none;box-sizing:border-box;text-transform:uppercase;"
+        oninput="this.value=this.value.toUpperCase()">
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <button onclick="confermaRinomina()" style="flex:2;padding:8px;background:rgba(200,169,110,0.15);border:1px solid rgba(200,169,110,0.4);color:#c8a96e;border-radius:7px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;">✓ Conferma</button>
+        <button onclick="annullaRinomina()" style="flex:1;padding:8px;background:#13151f;border:1px solid #333;color:#888;border-radius:7px;font-family:inherit;font-size:12px;cursor:pointer;">Annulla</button>
+      </div>
+    </div>
     <div id="edit-prices-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;max-height:320px;overflow-y:auto;"></div>
     <button onclick="saveEditedPrices()"
       style="width:100%;padding:11px;background:rgba(200,169,110,0.15);border:2px solid rgba(200,169,110,0.4);color:#c8a96e;border-radius:8px;font-family:inherit;font-size:14px;cursor:pointer;font-weight:700;margin-bottom:8px;">
@@ -2636,6 +2648,46 @@ function pulseAndRun(btn, fn) {
     setTimeout(() => icon.classList.remove('icon-pulse'), 400);
   }
   fn();
+}
+
+function attivaRinominaArticolo() {
+  const row = document.getElementById('rinomina-row');
+  const input = document.getElementById('rinomina-input');
+  row.style.display = 'block';
+  input.value = editingProduct || '';
+  setTimeout(() => input.focus(), 100);
+}
+
+function annullaRinomina() {
+  document.getElementById('rinomina-row').style.display = 'none';
+}
+
+function confermaRinomina() {
+  const nuovoNome = document.getElementById('rinomina-input').value.trim().toUpperCase();
+  if (!nuovoNome) return;
+  if (nuovoNome === editingProduct) { annullaRinomina(); return; }
+  if (rawData.find(r => r.product === nuovoNome)) {
+    document.getElementById('rinomina-input').style.borderColor = '#f87171';
+    document.getElementById('rinomina-input').placeholder = 'Nome già esistente!';
+    return;
+  }
+  // Aggiorna rawData
+  const row = rawData.find(r => r.product === editingProduct);
+  if (!row) return;
+  row.product = nuovoNome;
+  // Aggiorna catalogMap se presente
+  if (typeof catalogMap !== 'undefined' && catalogMap[editingProduct]) {
+    catalogMap[nuovoNome] = catalogMap[editingProduct];
+    delete catalogMap[editingProduct];
+  }
+  editingProduct = nuovoNome;
+  document.getElementById('edit-product-title').textContent = nuovoNome;
+  document.getElementById('rinomina-row').style.display = 'none';
+  render(); updateStats();
+  if (window.saveToFirebase) window.saveToFirebase();
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = '✓ Rinominato in ' + nuovoNome;
+  t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000);
 }
 
 function closeEditPriceModal() {
