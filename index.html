@@ -639,7 +639,7 @@ body { padding-bottom: 70px; }
       </table>
     </div>
     <div style="margin-top:8px;display:flex;align-items:center;justify-content:space-between;">
-      <div style="font-size:11px;color:#555;">Tocca una cella per modificare il prezzo</div>
+      <div style="font-size:11px;color:#555;">Tocca nome articolo per rinominare · cella per il prezzo</div>
       <button onclick="openNewArticleModal()" style="padding:8px 14px;background:rgba(74,222,128,0.12);border:1px solid rgba(74,222,128,0.3);color:#4ade80;border-radius:8px;font-family:inherit;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent;">＋ Nuovo articolo</button>
     </div>
   </div>
@@ -1033,7 +1033,7 @@ function renderGridTable() {
 
     const tr = document.createElement('tr');
     tr.style.borderBottom = '1px solid #1a1d2e';
-    let html = `<td style="padding:9px 10px;color:#e8e0d0;font-size:12px;font-weight:600;position:sticky;left:0;background:#13151f;border-right:1px solid #2a2d3a;">${row.product}</td>`;
+    let html = `<td style="padding:9px 10px;color:#e8e0d0;font-size:12px;font-weight:600;position:sticky;left:0;background:#13151f;border-right:1px solid #2a2d3a;cursor:pointer;" onclick="openEditPriceModal('${row.product.replace(/'/g,"\'")}')" title="Tocca per rinominare o modificare prezzi"><span style="margin-right:4px;">${row.product}</span><span style="font-size:10px;color:#555;">✏️</span></td>`;
     
     suppliers.forEach(s => {
       const v = row[s];
@@ -2668,18 +2668,11 @@ function confermaRinomina() {
   if (nuovoNome === editingProduct) { annullaRinomina(); return; }
   if (rawData.find(r => r.product === nuovoNome)) {
     document.getElementById('rinomina-input').style.borderColor = '#f87171';
-    document.getElementById('rinomina-input').placeholder = 'Nome già esistente!';
     return;
   }
-  // Aggiorna rawData
   const row = rawData.find(r => r.product === editingProduct);
   if (!row) return;
   row.product = nuovoNome;
-  // Aggiorna catalogMap se presente
-  if (typeof catalogMap !== 'undefined' && catalogMap[editingProduct]) {
-    catalogMap[nuovoNome] = catalogMap[editingProduct];
-    delete catalogMap[editingProduct];
-  }
   editingProduct = nuovoNome;
   document.getElementById('edit-product-title').textContent = nuovoNome;
   document.getElementById('rinomina-row').style.display = 'none';
