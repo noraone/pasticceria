@@ -2,9 +2,9 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="app-version" content="v27">
-<title>Confronto Prezzi Fornitori v27</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="app-version" content="v28">
+<title>Confronto Prezzi Fornitori v28</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -2754,9 +2754,7 @@ function openCalc(product, supplier, currentPrice, inputEl) {
   document.getElementById('calc-supplier').textContent = supplier;
   document.getElementById('calc-old').textContent = currentPrice != null ? 'Prezzo attuale  →  € ' + Number(currentPrice).toFixed(2) : 'Nessun prezzo inserito';
   document.getElementById('calc-display').textContent = calcValue || '0';
-  // Imposta altezza esatta dello schermo visibile (fix per iPhone PWA)
   const bg = document.getElementById('calc-bg');
-  bg.style.height = window.innerHeight + 'px';
   bg.style.display = 'flex';
 }
 
@@ -4099,7 +4097,7 @@ function cancelGeminiKey() {
 </script>
 
 <!-- CALCULATOR MODAL -->
-<div id="calc-bg" style="display:none;position:fixed;top:0;left:0;right:0;background:#1a1c24;z-index:500;flex-direction:column;overflow:hidden;">
+<div id="calc-bg" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100vh;max-height:100vh;background:#1a1c24;z-index:500;flex-direction:column;overflow:hidden;-webkit-overflow-scrolling:touch;">
   <!-- Header -->
   <div style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:14px 14px 8px;">
     <button onclick="closeCalc()" style="background:rgba(255,255,255,0.1);border:none;color:#fff;padding:9px 16px;border-radius:20px;font-family:inherit;font-size:14px;cursor:pointer;">✕ Annulla</button>
@@ -4113,11 +4111,11 @@ function cancelGeminiKey() {
   <!-- Display -->
   <div style="flex-shrink:0;background:#13151f;border-radius:12px;margin:0 10px 8px;padding:10px 16px;text-align:right;">
     <div id="calc-old" style="font-size:12px;color:#555;min-height:18px;"></div>
-    <div id="calc-display" style="font-size:40px;font-weight:300;color:#fff;letter-spacing:-1px;line-height:1.1;word-break:break-all;">0</div>
+    <div id="calc-display" style="font-size:40px;font-weight:300;color:#fff;letter-spacing:-1px;line-height:1.1;word-break:break-all;overflow:hidden;">0</div>
   </div>
 
   <!-- Keypad -->
-  <div style="flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(4,1fr);gap:6px;padding:0 10px max(12px,env(safe-area-inset-bottom,12px));box-sizing:border-box;">
+  <div style="flex:1;min-height:0;max-height:calc(100vh - 140px);display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(4,1fr);gap:6px;padding:0 10px max(12px,env(safe-area-inset-bottom,12px));box-sizing:border-box;overflow:hidden;align-items:stretch;">
     <button class="calc-btn" onclick="calcInput('7')">7</button>
     <button class="calc-btn" onclick="calcInput('8')">8</button>
     <button class="calc-btn" onclick="calcInput('9')">9</button>
@@ -4142,7 +4140,9 @@ function cancelGeminiKey() {
   font-weight: 400;
   border-radius: 12px;
   height: 100%;
-  min-height: 0;
+  max-height: 90px;
+  min-height: 54px;
+  min-width: 0;
   cursor: pointer;
   font-family: inherit;
   transition: background 0.1s;
