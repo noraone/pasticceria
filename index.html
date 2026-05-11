@@ -590,6 +590,7 @@ body { padding-bottom: 70px; }
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
     <button onclick="avviaAggiornamento()" oncontextmenu="resetGhToken();return false;" id="github-publish-btn" style="flex:1;padding:10px;background:rgba(99,179,237,0.08);border:1px solid rgba(99,179,237,0.2);color:#63b3ed;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">🔄 Aggiorna software</button>
+    <button onclick="azzeraPrezzi()" style="padding:10px 14px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);color:#f87171;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;" title="Azzera tutti i prezzi">🗑️</button>
   </div>
 </div>
 
@@ -2383,6 +2384,37 @@ function confirmNewArticleSupplier() {
 
 function closeNewArticleModal() {
   document.getElementById('new-article-bg').style.display = 'none';
+}
+
+function azzeraPrezzi() {
+  const totPrezzi = rawData.reduce((a, r) => a + allSuppliers.filter(s => r[s] != null).length, 0);
+  if (totPrezzi === 0) {
+    alert('Non ci sono prezzi da cancellare.');
+    return;
+  }
+  const prima = confirm('⚠️ Vuoi cancellare tutti i prezzi (' + totPrezzi + ' valori)?\n\nGli articoli e i fornitori rimarranno intatti.');
+  if (!prima) return;
+  const seconda = confirm('🔴 ULTIMA CONFERMA\n\nSaranno cancellati ' + totPrezzi + ' prezzi da ' + rawData.length + ' articoli.\n\nConfermi?');
+  if (!seconda) return;
+
+  // Rimuovi tutti i valori prezzo e date da ogni riga
+  rawData.forEach(row => {
+    allSuppliers.forEach(s => {
+      delete row[s];
+    });
+    delete row.dates;
+    delete row.history;
+  });
+
+  render();
+  renderGridTable();
+  updateStats();
+  if (window.saveToFirebase) window.saveToFirebase();
+
+  const t = document.getElementById('toast');
+  document.getElementById('toast-msg').textContent = '✓ Tutti i prezzi azzerati. Gli articoli sono rimasti.';
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 4000);
 }
 function saveNewArticle() {
   const name = document.getElementById('new-article-name').value.trim().toUpperCase();
