@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="app-version" content="v26">
-<title>Confronto Prezzi Fornitori v26</title>
+<meta name="app-version" content="v27">
+<title>Confronto Prezzi Fornitori v27</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -3948,38 +3948,50 @@ function avviaAggiornamento() {
 }
 
 async function pubblicaSuGitHub(fileInput) {
+  // FIX 1: resetta subito il valore così la prossima selezione rilancia onchange
+  fileInput.value = '';
+
   const file = fileInput && fileInput.files && fileInput.files[0];
   if (!file) return;
+
   let token = localStorage.getItem('gh_token') || '';
   if (!token) { apriImpostazioniToken(); return; }
+
   const btn = document.getElementById('github-publish-btn');
-  btn.textContent = '⏳ Aggiornamento in corso...';
+  btn.textContent = '⏳ Caricamento...';
   btn.disabled = true;
   btn.style.opacity = '0.6';
-  btn.disabled = true;
 
   try {
-    // Timeout di 15 secondi
+    // FIX 2: AbortController collegato correttamente ai fetch con timeout 20s
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 15000);
-    
-    // Get current file SHA
+    const timeout = setTimeout(() => controller.abort(), 20000);
+
+    // Recupera SHA attuale del file su GitHub
     const shaResp = await fetch(
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}`,
-      { headers: { 'Authorization': `token ${token}`, 'User-Agent': 'pasticceria-app' } }
+      {
+        headers: { 'Authorization': `token ${token}`, 'User-Agent': 'pasticceria-app' },
+        signal: controller.signal
+      }
     );
+
     if (shaResp.status === 401) {
+      clearTimeout(timeout);
       localStorage.removeItem('gh_token');
-      btn.textContent = '🔄 Aggiorna software';
-      btn.style.opacity = '1';
-      btn.disabled = false;
+      resetBtn(btn);
       apriImpostazioniToken();
       return;
     }
+    if (!shaResp.ok) {
+      clearTimeout(timeout);
+      throw new Error('Errore lettura SHA: ' + shaResp.status);
+    }
+
     const shaData = await shaResp.json();
     const sha = shaData.sha;
 
-    // Leggi il file selezionato
+    // Leggi e codifica il file
     const encoded = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -3994,7 +4006,9 @@ async function pubblicaSuGitHub(fileInput) {
       reader.readAsText(file);
     });
 
-    // Upload to GitHub
+    btn.textContent = '⏳ Pubblicazione...';
+
+    // Carica su GitHub
     const uploadResp = await fetch(
       `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_FILE}`,
       {
@@ -4005,19 +4019,19 @@ async function pubblicaSuGitHub(fileInput) {
           'User-Agent': 'pasticceria-app'
         },
         body: JSON.stringify({
-          message: 'Aggiornamento automatico ' + new Date().toLocaleDateString('it-IT'),
+          message: 'Aggiornamento ' + new Date().toLocaleDateString('it-IT'),
           content: encoded,
           sha: sha
-        })
+        }),
+        signal: controller.signal
       }
     );
 
+    clearTimeout(timeout);
+
     if (uploadResp.status === 401) {
-      // Token non valido — cancella e chiedi nuovo
       localStorage.removeItem('gh_token');
-      btn.textContent = '🔄 Aggiorna software';
-      btn.style.opacity = '1';
-      btn.disabled = false;
+      resetBtn(btn);
       apriImpostazioniToken();
       return;
     }
@@ -4028,26 +4042,30 @@ async function pubblicaSuGitHub(fileInput) {
       btn.style.color = '#22c55e';
       btn.style.opacity = '1';
       btn.disabled = false;
-      setTimeout(() => {
-        btn.textContent = '🔄 Aggiorna software';
-        btn.style.background = 'rgba(99,179,237,0.08)';
-        btn.style.borderColor = 'rgba(99,179,237,0.2)';
-        btn.style.color = '#63b3ed';
-      }, 3000);
+      setTimeout(() => resetBtn(btn), 4000);
     } else {
-      throw new Error('Upload fallito: ' + uploadResp.status);
+      // FIX 3: mostra il codice di errore reale con alert
+      const errBody = await uploadResp.text();
+      throw new Error('HTTP ' + uploadResp.status + ': ' + errBody.substring(0, 100));
     }
   } catch(err) {
-    btn.textContent = '❌ Errore';
-    btn.style.color = '#f87171';
-    btn.style.opacity = '1';
-    btn.disabled = false;
-    setTimeout(() => {
-      btn.textContent = '🔄 Aggiorna software';
-      btn.style.color = '#63b3ed';
-    }, 3000);
-    console.error(err);
+    if (err.name === 'AbortError') {
+      alert('⏱ Timeout: operazione troppo lenta. Controlla la connessione e riprova.');
+    } else {
+      alert('❌ Errore upload:
+' + err.message);
+    }
+    resetBtn(btn);
   }
+}
+
+function resetBtn(btn) {
+  btn.textContent = '🔄 Aggiorna software';
+  btn.style.background = 'rgba(99,179,237,0.08)';
+  btn.style.borderColor = 'rgba(99,179,237,0.2)';
+  btn.style.color = '#63b3ed';
+  btn.style.opacity = '1';
+  btn.disabled = false;
 }
 
 
