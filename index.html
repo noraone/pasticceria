@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v28">
-<title>Confronto Prezzi Fornitori v28</title>
+<meta name="app-version" content="v29">
+<title>Confronto Prezzi Fornitori v29</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -3946,11 +3946,11 @@ function avviaAggiornamento() {
 }
 
 async function pubblicaSuGitHub(fileInput) {
-  // FIX 1: resetta subito il valore così la prossima selezione rilancia onchange
-  fileInput.value = '';
-
+  // Leggi il file PRIMA di qualsiasi reset
   const file = fileInput && fileInput.files && fileInput.files[0];
   if (!file) return;
+  // Resetta DOPO aver letto, così la prossima selezione rilancia onchange
+  fileInput.value = '';
 
   let token = localStorage.getItem('gh_token') || '';
   if (!token) { apriImpostazioniToken(); return; }
