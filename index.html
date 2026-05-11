@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="app-version" content="v24">
 <title>Confronto Prezzi Fornitori v24</title>
 <style>
 
@@ -488,6 +489,13 @@ window.addEventListener('load', () => setTimeout(window.initFirebase, 500));
 </script>
 </head>
 <body>
+
+<!-- BANNER AGGIORNAMENTO -->
+<div id="update-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#22c55e;padding:12px 16px;display:none;align-items:center;justify-content:space-between;gap:10px;">
+  <span style="font-size:13px;color:#fff;font-weight:600;">🔄 Nuova versione disponibile!</span>
+  <button onclick="window.location.reload(true)" style="background:#fff;border:none;color:#166534;padding:7px 14px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;flex-shrink:0;">Aggiorna ora</button>
+</div>
+
 <style>
 /* TAB BAR */
 #tab-bar {
@@ -4479,5 +4487,37 @@ function cancelGeminiKey() {
     </div>
   </div>
 </div>
+
+<script>
+// ── AUTO-UPDATE CHECK ──
+(function(){
+  var CURRENT_VERSION = document.querySelector('meta[name="app-version"]').getAttribute('content');
+  var CHECK_URL = 'https://noraone.github.io/pasticceria/?nocache=' + Date.now();
+  var lastCheck = 0;
+
+  function checkForUpdate(){
+    var now = Date.now();
+    if(now - lastCheck < 60000) return; // max 1 controllo al minuto
+    lastCheck = now;
+    fetch(CHECK_URL, {cache:'no-store'})
+      .then(function(r){ return r.text(); })
+      .then(function(html){
+        var match = html.match(/<meta name="app-version" content="([^"]+)"/);
+        if(match && match[1] !== CURRENT_VERSION){
+          window.location.reload(true);
+        }
+      })
+      .catch(function(){}); // silenzioso se offline
+  }
+
+  // Controlla quando l'app torna in primo piano
+  document.addEventListener('visibilitychange', function(){
+    if(!document.hidden) checkForUpdate();
+  });
+
+  // Primo controllo dopo 3 secondi dall'apertura
+  setTimeout(checkForUpdate, 3000);
+})();
+</script>
 </body>
 </html>
