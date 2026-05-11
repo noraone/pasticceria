@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v33">
+<meta name="app-version" content="v34">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pasticceria">
@@ -11,7 +11,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Confronto Prezzi Fornitori v33</title>
+<title>Confronto Prezzi Fornitori v34</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -607,7 +607,7 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v33</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v34</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
@@ -3303,6 +3303,7 @@ function parseRecipeVoice() {
 
   const aliasList = Object.entries(recipeAliases).sort((a,b) => b[0].length - a[0].length);
   const found = [];
+  const skippedAlreadyInList = [];
   const usedProducts = new Set(currentRecipeIngredients.map(i => i.product));
 
   // Normalize full text and find ALL product positions (no need for comma splitting)
@@ -3312,7 +3313,8 @@ function parseRecipeVoice() {
   const allPositions = [];
   const seenProducts = new Set();
   for (const [alias, product] of aliasList) {
-    if (usedProducts.has(product) || seenProducts.has(product)) continue;
+    if (seenProducts.has(product)) continue;
+    if (usedProducts.has(product)) { skippedAlreadyInList.push(product); continue; }
     const re = new RegExp('\\b' + alias.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
     const m = tFull.match(re);
     if (m) {
@@ -3499,7 +3501,11 @@ function parseRecipeVoice() {
   }
 
   if (found.length === 0 && timesFound === 0 && unrecognizedIngredients.length === 0) {
-    errEl.innerHTML = 'Nessun ingrediente riconosciuto.<br><span style="color:#888">Prova: <i>burro 250 g, cottura 30 minuti</i></span>';
+    if (skippedAlreadyInList.length > 0) {
+      errEl.innerHTML = '⚠️ ' + skippedAlreadyInList.join(', ') + ' già in lista.<br><span style="color:#888">Usa la matita ✏️ per modificare la quantità.</span>';
+    } else {
+      errEl.innerHTML = 'Nessun ingrediente riconosciuto.<br><span style="color:#888">Prova: <i>burro 250 g, cottura 30 minuti</i></span>';
+    }
     errEl.style.display = 'block';
     return;
   }
