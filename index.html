@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="app-version" content="v29">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pasticceria">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Confronto Prezzi Fornitori v29</title>
 <style>
 
@@ -600,7 +604,8 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div id="desktop-btns" style="margin-top:16px;display:flex;gap:8px;">
+  <div style="text-align:center;margin:10px 0 2px;font-size:10px;color:#444;letter-spacing:1px;font-family:monospace;">v29</div>
+  <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
     <button onclick="avviaAggiornamento()" oncontextmenu="resetGhToken();return false;" id="github-publish-btn" style="flex:1;padding:10px;background:rgba(99,179,237,0.08);border:1px solid rgba(99,179,237,0.2);color:#63b3ed;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">🔄 Aggiorna software</button>
