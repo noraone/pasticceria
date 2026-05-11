@@ -607,7 +607,7 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:10px;color:#444;letter-spacing:1px;font-family:monospace;">v31</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v31</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
@@ -4124,15 +4124,15 @@ function cancelGeminiKey() {
 
   <!-- Keypad -->
   <div style="flex:1;min-height:0;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(4,1fr);gap:6px;padding:0 10px max(12px,env(safe-area-inset-bottom,12px));box-sizing:border-box;overflow:hidden;align-items:stretch;">
-    <button class="calc-btn" onclick="calcInput('7')">7</button>
-    <button class="calc-btn" onclick="calcInput('8')">8</button>
-    <button class="calc-btn" onclick="calcInput('9')">9</button>
-    <button class="calc-btn" onclick="calcInput('4')">4</button>
-    <button class="calc-btn" onclick="calcInput('5')">5</button>
-    <button class="calc-btn" onclick="calcInput('6')">6</button>
     <button class="calc-btn" onclick="calcInput('1')">1</button>
     <button class="calc-btn" onclick="calcInput('2')">2</button>
     <button class="calc-btn" onclick="calcInput('3')">3</button>
+    <button class="calc-btn" onclick="calcInput('4')">4</button>
+    <button class="calc-btn" onclick="calcInput('5')">5</button>
+    <button class="calc-btn" onclick="calcInput('6')">6</button>
+    <button class="calc-btn" onclick="calcInput('7')">7</button>
+    <button class="calc-btn" onclick="calcInput('8')">8</button>
+    <button class="calc-btn" onclick="calcInput('9')">9</button>
     <button class="calc-btn calc-btn-accent" onclick="calcInput(',')">  ,</button>
     <button class="calc-btn" onclick="calcInput('0')">0</button>
     <button class="calc-btn calc-btn-del" onclick="calcDel()">⌫</button>
