@@ -85,7 +85,7 @@
     background: #22253a;
     border: 2px solid #2e3150;
     border-radius: 8px;
-    aspect-ratio: 1 / 1;
+    min-height: 28vw;
     display: flex; flex-direction: column;
     align-items: center; justify-content: space-evenly;
     text-align: center;
@@ -141,7 +141,7 @@
     font-size: 2.2vw; color: #fbbf24;
     letter-spacing: 2px; text-transform: uppercase; margin-bottom: 0;
   }
-  .card-date { font-size: 2.8vw; color: #ffffff; }
+  .card-date { font-size: 2.8vw; color: #888; margin-top: 2px; }
   .card-no-data { font-size: 10px; color: #252830; }
 
   /* MODAL */
@@ -723,10 +723,10 @@ body { padding-bottom: 70px; }
 
 <!-- EDIT PRICE MODAL -->
 <div id="edit-price-bg" onclick="closeEditPriceModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;z-index:200;padding:20px;">
-  <div onclick="event.stopPropagation()" style="background:#22253a;border:1px solid rgba(200,169,110,0.35);border-radius:14px;padding:28px;width:100%;max-width:420px;box-shadow:0 40px 80px rgba(0,0,0,0.7);animation:popIn 0.22s ease;">
+  <div onclick="event.stopPropagation()" style="background:#22253a;border:1px solid rgba(200,169,110,0.35);border-radius:14px;padding:20px;width:100%;max-width:480px;box-shadow:0 40px 80px rgba(0,0,0,0.7);animation:popIn 0.22s ease;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;">
     <div style="font-size:9px;letter-spacing:4px;color:#c8a96e;margin-bottom:6px;text-transform:uppercase;">Modifica Prezzi</div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px;">
-      <h2 id="edit-product-title" style="font-family:'Playfair Display',serif;font-size:19px;color:#fff;margin:0;flex:1;"></h2>
+      <h2 id="edit-product-title" style="font-family:'Playfair Display',serif;font-size:22px;color:#fff;margin:0;flex:1;"></h2>
       <button onclick="attivaRinominaArticolo()" title="Rinomina articolo" style="background:rgba(200,169,110,0.12);border:1px solid rgba(200,169,110,0.3);color:#c8a96e;border-radius:6px;padding:5px 9px;font-size:13px;cursor:pointer;flex-shrink:0;">✏️</button>
     </div>
     <div id="rinomina-row" style="display:none;margin-bottom:14px;">
@@ -738,7 +738,7 @@ body { padding-bottom: 70px; }
         <button onclick="annullaRinomina()" style="flex:1;padding:8px;background:#13151f;border:1px solid #333;color:#888;border-radius:7px;font-family:inherit;font-size:12px;cursor:pointer;">Annulla</button>
       </div>
     </div>
-    <div id="edit-prices-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;max-height:320px;overflow-y:auto;"></div>
+    <div id="edit-prices-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;max-height:52vh;overflow-y:auto;flex:1;"></div>
     <button onclick="saveEditedPrices()"
       style="width:100%;padding:11px;background:rgba(200,169,110,0.15);border:2px solid rgba(200,169,110,0.4);color:#c8a96e;border-radius:8px;font-family:inherit;font-size:14px;cursor:pointer;font-weight:700;margin-bottom:8px;">
       💾 Salva modifiche
@@ -2472,25 +2472,25 @@ function openEditPriceModal(productName) {
       ? `<button onclick="toggleHistory('${productName}','${p.s}')" 
           style="background:rgba(200,169,110,0.15);border:1px solid rgba(200,169,110,0.3);color:#c8a96e;border-radius:6px;padding:5px 10px;cursor:pointer;font-size:11px;font-family:inherit;">📋 Storico (${histCount})</button>`
       : '';
-    list.innerHTML += `<div style="background:#13151f;padding:10px 12px;border-radius:8px;border:1px solid #2a2d3a;margin-bottom:6px;">
+    list.innerHTML += `<div style="background:#13151f;padding:14px 14px;border-radius:10px;border:1px solid #2a2d3a;margin-bottom:8px;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
-        <div style="flex:1;font-size:14px;color:#fbbf24;font-weight:700;">${p.s}</div>
+        <div style="flex:1;font-size:17px;color:#fbbf24;font-weight:700;">${p.s}</div>
         ${histBtn}
         <button onclick="deleteSupplierPrice('${productName}','${p.s}',this)"
           style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;border-radius:6px;padding:5px 9px;cursor:pointer;font-size:13px;">✕</button>
       </div>
       <div style="display:flex;gap:8px;">
         <div style="flex:1;">
-          <div style="font-size:9px;color:#fff;letter-spacing:1px;margin-bottom:4px;">PREZZO €</div>
+          <div style="font-size:11px;color:#aaa;letter-spacing:1px;margin-bottom:6px;">PREZZO €</div>
           <input type="number" step="0.01" min="0" value="${p.v.toFixed(2)}" data-supplier="${p.s}"
             onclick="openCalc('${productName}','${p.s}',${p.v},this)"
             readonly
-            style="width:100%;background:#1a1d2e;border:1px solid #22c55e55;color:#22c55e;padding:8px 10px;border-radius:6px;font-family:inherit;font-size:16px;font-weight:700;outline:none;text-align:right;cursor:pointer;">
+            style="width:100%;background:#1a1d2e;border:1px solid #22c55e55;color:#22c55e;padding:8px 10px;border-radius:6px;font-family:inherit;font-size:20px;font-weight:700;outline:none;text-align:right;cursor:pointer;">
         </div>
         <div style="flex:1;">
-          <div style="font-size:9px;color:#fff;letter-spacing:1px;margin-bottom:4px;">DATA</div>
+          <div style="font-size:11px;color:#aaa;letter-spacing:1px;margin-bottom:6px;">DATA</div>
           <input type="date" value="${supplierDate}" data-supplier-date="${p.s}"
-            style="width:100%;background:#1a1d2e;border:1px solid #3a3d4a;color:#e8e0d0;padding:8px 10px;border-radius:6px;font-family:inherit;font-size:12px;outline:none;cursor:pointer;">
+            style="width:100%;background:#1a1d2e;border:1px solid #3a3d4a;color:#e8e0d0;padding:8px 10px;border-radius:6px;font-family:inherit;font-size:14px;outline:none;cursor:pointer;">
         </div>
       </div>
       <div id="${histId}" style="display:none;margin-top:10px;"></div>
@@ -4080,12 +4080,12 @@ function cancelGeminiKey() {
     <!-- Display -->
     <div style="background:#13151f;border-radius:16px;padding:20px 24px;margin-bottom:16px;text-align:right;">
       <div id="calc-old" style="font-size:13px;color:#555;min-height:20px;"></div>
-      <div id="calc-display" style="font-size:52px;font-weight:300;color:#fff;letter-spacing:-1px;min-height:64px;word-break:break-all;">0</div>
+      <div id="calc-display" style="font-size:clamp(44px,11vw,64px);font-weight:300;color:#fff;letter-spacing:-1px;min-height:clamp(56px,14vw,80px);word-break:break-all;">0</div>
     </div>
   </div>
 
   <!-- Keypad -->
-  <div style="padding:0 16px 32px;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+  <div style="padding:0 16px max(32px,env(safe-area-inset-bottom,16px));display:grid;grid-template-columns:repeat(3,1fr);gap:clamp(8px,2vw,14px);">
     <button class="calc-btn" onclick="calcInput('7')">7</button>
     <button class="calc-btn" onclick="calcInput('8')">8</button>
     <button class="calc-btn" onclick="calcInput('9')">9</button>
@@ -4106,20 +4106,20 @@ function cancelGeminiKey() {
   background: #2a2d3e;
   border: none;
   color: #fff;
-  font-size: 32px;
+  font-size: clamp(28px, 7vw, 38px);
   font-weight: 400;
   border-radius: 16px;
-  height: 80px;
+  height: clamp(70px, 14vh, 100px);
   cursor: pointer;
   font-family: inherit;
   transition: background 0.1s;
   -webkit-tap-highlight-color: transparent;
 }
-.calc-btn:active { background: #3a3d50; }
-.calc-btn-accent { background: #2d3d20; color: #4ade80; font-size: 36px; font-weight: 700; }
-.calc-btn-accent:active { background: #3a4f28; }
-.calc-btn-del { background: #3a2020; color: #f87171; font-size: 28px; }
-.calc-btn-del:active { background: #4f2828; }
+.calc-btn:active { background: #3a3d50; transform: scale(0.95); }
+.calc-btn-accent { background: #2d3d20; color: #4ade80; font-size: clamp(30px, 8vw, 40px); font-weight: 700; }
+.calc-btn-accent:active { background: #3a4f28; transform: scale(0.95); }
+.calc-btn-del { background: #3a2020; color: #f87171; font-size: clamp(24px, 6vw, 34px); }
+.calc-btn-del:active { background: #4f2828; transform: scale(0.95); }
 </style>
 
 
