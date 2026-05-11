@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="app-version" content="v25">
-<title>Confronto Prezzi Fornitori v25</title>
+<meta name="app-version" content="v26">
+<title>Confronto Prezzi Fornitori v26</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -348,6 +348,12 @@
   background: rgba(251,191,36,0.08) !important;
 }
 </style>
+<style>
+/* Nascondi pulsanti desktop (Aggiorna software + cestino) su iPhone/mobile */
+@media (max-width: 768px) {
+  #desktop-btns { display: none !important; }
+}
+</style>
 <script>
 // API key setup
 try { if(!localStorage.getItem('anthropic_api_key')) localStorage.setItem('anthropic_api_key', atob('c2stYW50LWFwaTAzLWFKaDgxcEdSanRDeUNQMWJ5NlQ0S3VHNDVMY2xON0dMOWNoYXdrU3JvWmttTEtWQUlzMW1FejM4clBrTEJVZnJZd0NwUkVKR0VPUlVfZWxxWjl2c2lRLW9vNHljd0FB')); } catch(e){}
@@ -594,7 +600,7 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="margin-top:16px;display:flex;gap:8px;">
+  <div id="desktop-btns" style="margin-top:16px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
     <button onclick="avviaAggiornamento()" oncontextmenu="resetGhToken();return false;" id="github-publish-btn" style="flex:1;padding:10px;background:rgba(99,179,237,0.08);border:1px solid rgba(99,179,237,0.2);color:#63b3ed;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">🔄 Aggiorna software</button>
@@ -2748,7 +2754,10 @@ function openCalc(product, supplier, currentPrice, inputEl) {
   document.getElementById('calc-supplier').textContent = supplier;
   document.getElementById('calc-old').textContent = currentPrice != null ? 'Prezzo attuale  →  € ' + Number(currentPrice).toFixed(2) : 'Nessun prezzo inserito';
   document.getElementById('calc-display').textContent = calcValue || '0';
-  document.getElementById('calc-bg').style.display = 'flex';
+  // Imposta altezza esatta dello schermo visibile (fix per iPhone PWA)
+  const bg = document.getElementById('calc-bg');
+  bg.style.height = window.innerHeight + 'px';
+  bg.style.display = 'flex';
 }
 
 function closeCalc() {
@@ -4073,9 +4082,9 @@ function cancelGeminiKey() {
 </script>
 
 <!-- CALCULATOR MODAL -->
-<div id="calc-bg" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;width:100%;height:100%;background:#1a1c24;z-index:500;flex-direction:column;overflow:hidden;">
+<div id="calc-bg" style="display:none;position:fixed;top:0;left:0;right:0;background:#1a1c24;z-index:500;flex-direction:column;overflow:hidden;">
   <!-- Header -->
-  <div style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:max(12px,env(safe-area-inset-top,12px)) 14px 8px;">
+  <div style="flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:14px 14px 8px;">
     <button onclick="closeCalc()" style="background:rgba(255,255,255,0.1);border:none;color:#fff;padding:9px 16px;border-radius:20px;font-family:inherit;font-size:14px;cursor:pointer;">✕ Annulla</button>
     <div style="text-align:center;">
       <div id="calc-product" style="font-size:11px;color:#fbbf24;letter-spacing:2px;text-transform:uppercase;"></div>
