@@ -4052,8 +4052,7 @@ async function pubblicaSuGitHub(fileInput) {
     if (err.name === 'AbortError') {
       alert('⏱ Timeout: operazione troppo lenta. Controlla la connessione e riprova.');
     } else {
-      alert('❌ Errore upload:
-' + err.message);
+      alert('❌ Errore upload: ' + err.message);
     }
     resetBtn(btn);
   }
