@@ -3,12 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v29">
+<meta name="app-version" content="v30">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pasticceria">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Confronto Prezzi Fornitori v29</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Confronto Prezzi Fornitori v30</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -604,7 +607,7 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:10px;color:#444;letter-spacing:1px;font-family:monospace;">v29</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:10px;color:#444;letter-spacing:1px;font-family:monospace;">v30</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
@@ -4536,7 +4539,8 @@ function cancelGeminiKey() {
       .then(function(html){
         var match = html.match(/<meta name="app-version" content="([^"]+)"/);
         if(match && match[1] !== CURRENT_VERSION){
-          window.location.reload(true);
+          // force fresh load su iOS PWA (reload(true) non bypassa cache)
+          window.location.replace(window.location.pathname + '?v=' + match[1] + '&t=' + Date.now());
         }
       })
       .catch(function(){}); // silenzioso se offline
