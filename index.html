@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v31">
+<meta name="app-version" content="v32">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pasticceria">
@@ -11,7 +11,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Confronto Prezzi Fornitori v31</title>
+<title>Confronto Prezzi Fornitori v32</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -607,7 +607,7 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v31</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v32</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
@@ -761,8 +761,8 @@ body { padding-bottom: 70px; }
       </div>
     </div>
     <div id="edit-prices-list" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;max-height:52vh;overflow-y:auto;flex:1;"></div>
-    <button onclick="saveEditedPrices()"
-      style="width:100%;padding:11px;background:rgba(200,169,110,0.15);border:2px solid rgba(200,169,110,0.4);color:#c8a96e;border-radius:8px;font-family:inherit;font-size:14px;cursor:pointer;font-weight:700;margin-bottom:8px;">
+    <button id="save-edits-btn" onclick="saveEditedPrices()"
+      style="display:none;width:100%;padding:11px;background:rgba(200,169,110,0.15);border:2px solid rgba(200,169,110,0.4);color:#c8a96e;border-radius:8px;font-family:inherit;font-size:14px;cursor:pointer;font-weight:700;margin-bottom:8px;">
       💾 Salva modifiche
     </button>
     <button onclick="closeEditPriceModal()"
@@ -2511,7 +2511,7 @@ function openEditPriceModal(productName) {
         </div>
         <div style="flex:1;">
           <div style="font-size:11px;color:#aaa;letter-spacing:1px;margin-bottom:6px;">DATA</div>
-          <input type="date" value="${supplierDate}" data-supplier-date="${p.s}"
+          <input type="date" value="${supplierDate}" data-supplier-date="${p.s}" onchange="markChanged()"
             style="width:100%;background:#1a1d2e;border:1px solid #3a3d4a;color:#e8e0d0;padding:8px 10px;border-radius:6px;font-family:inherit;font-size:14px;outline:none;cursor:pointer;">
         </div>
       </div>
@@ -2550,10 +2550,16 @@ function openEditPriceModal(productName) {
   document.getElementById('edit-price-bg').style.display = 'flex';
 }
 
+function markChanged() {
+  const btn = document.getElementById('save-edits-btn');
+  if (btn) btn.style.display = 'block';
+}
+
 function deleteSupplierPrice(productName, supplier, btn) {
   const row = rawData.find(r => r.product === productName);
   if (row) { delete row[supplier]; }
   btn.closest('div').remove();
+  markChanged();
 }
 
 function addSupplierToProduct() {
@@ -2800,6 +2806,7 @@ function confirmCalc() {
   // Update the price input field
   if (calcTarget.inputEl) {
     calcTarget.inputEl.value = val.toFixed(2);
+    markChanged();
     // Auto-update the date field for this supplier to today
     const supplier = calcTarget.inputEl.getAttribute('data-supplier');
     if (supplier) {
