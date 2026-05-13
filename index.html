@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v40">
+<meta name="app-version" content="v41">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pasticceria">
@@ -11,7 +11,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Confronto Prezzi Fornitori v40</title>
+<title>Confronto Prezzi Fornitori v41</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -659,7 +659,7 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v40</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v41</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
@@ -3778,7 +3778,10 @@ function openRecipeHistory(idx) {
     return `<div style="background:#1a1d2e;border:1px solid #2a2d3a;border-radius:8px;padding:10px 14px;margin-bottom:8px;">
       <div style="font-size:12px;color:#63b3ed;margin-bottom:6px;">📅 ${label}</div>
       <div style="font-size:11px;color:#aaa;margin-bottom:8px;">${snap.ingredients ? snap.ingredients.length : 0} ingredienti · ${snap.weight ? snap.weight + ' ' + snap.unit : 'peso non inserito'}</div>
-      <button onclick="restoreRecipeVersion(${idx}, ${recipe.history.length - 1 - i})" style="padding:6px 12px;background:rgba(200,169,110,0.15);border:1px solid rgba(200,169,110,0.4);color:#c8a96e;border-radius:6px;font-family:inherit;font-size:11px;cursor:pointer;">↩️ Ripristina questa versione</button>
+      <div style="display:flex;gap:8px;">
+        <button onclick="restoreRecipeVersion(${idx}, ${recipe.history.length - 1 - i})" style="flex:1;padding:6px 12px;background:rgba(200,169,110,0.15);border:1px solid rgba(200,169,110,0.4);color:#c8a96e;border-radius:6px;font-family:inherit;font-size:11px;cursor:pointer;">↩️ Ripristina</button>
+        <button onclick="deleteRecipeBackup(${idx}, ${recipe.history.length - 1 - i})" style="padding:6px 10px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;border-radius:6px;font-family:inherit;font-size:11px;cursor:pointer;">🗑</button>
+      </div>
     </div>`;
   }).join('');
   const modal = document.getElementById('modal');
@@ -3789,6 +3792,14 @@ function openRecipeHistory(idx) {
     <button onclick="closeModal()" style="width:100%;margin-top:4px;padding:10px;background:#13151f;color:#7a7a8a;border-radius:7px;font-size:12px;font-family:inherit;border:1px solid #2a2d3a;cursor:pointer;">Chiudi</button>
   </div>`;
   document.getElementById('modal-bg').style.display = 'flex';
+}
+
+function deleteRecipeBackup(recipeIdx, historyIdx) {
+  if (!confirm('Eliminare questo backup?')) return;
+  const recipe = recipes[recipeIdx];
+  recipe.history = (recipe.history || []).filter((_, i) => i !== historyIdx);
+  saveRecipesLocal();
+  openRecipeHistory(recipeIdx); // riapri storico aggiornato
 }
 
 function restoreRecipeVersion(recipeIdx, historyIdx) {
