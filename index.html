@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v52">
+<meta name="app-version" content="v53">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pasticceria">
@@ -11,7 +11,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Confronto Prezzi Fornitori v52</title>
+<title>Confronto Prezzi Fornitori v53</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -659,7 +659,7 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v52</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v53</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
@@ -3011,23 +3011,40 @@ function renderRecipes() {
     const card = document.createElement('div');
     card.style.cssText = 'background:#1e2130;border-radius:14px;padding:16px;border:1px solid #2a2d3a;cursor:pointer;';
     card.onclick = () => openRecipeDetail(i);
+    // Calcola prezzi vendita per pezzatura
+    const pezzRows = (() => {
+      if (!recipe.pezzature || !recipe.pezzature.length || !recipe.weight || total <= 0) return '';
+      const weightG = recipe.unit === 'kg' ? recipe.weight * 1000 : recipe.weight;
+      const ingredientsTotal2 = total - (recipe.hoursWork||0)*COST_LABOR_PER_HOUR - (recipe.hoursPack||0)*COST_PACK_PER_HOUR - ((recipe.hoursCook||0)+(recipe.hoursRise||0))*COST_ENERGY_PER_HOUR;
+      const costPerG = total / weightG;
+      return recipe.pezzature.map(p => {
+        const costPez = costPerG * p.grams + (p.bagCost || 0);
+        const sellPez = recipe.margin > 0 ? costPez * (1 + recipe.margin/100) : null;
+        return `<div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;background:#13151f;border-radius:6px;padding:5px 10px;">
+          <span style="color:#aaa;font-size:12px;">${p.grams>=1000?p.grams/1000+' kg':p.grams+' g'}</span>
+          ${sellPez
+            ? `<div style="text-align:right;"><span style="color:#22c55e;font-size:15px;font-weight:800;">€ ${sellPez.toFixed(2)}</span><span style="color:#555;font-size:10px;"> vendita</span></div>`
+            : `<span style="color:#555;font-size:11px;">costo € ${costPez.toFixed(2)}</span>`
+          }
+        </div>`;
+      }).join('');
+    })();
+
     card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:${pezzRows?'8px':'0'};">
         <div>
           <div style="font-family:'Playfair Display',serif;font-size:18px;color:#e8e0d0;margin-bottom:4px;">${recipe.name}</div>
           <div style="font-size:11px;color:#555;">${recipe.ingredients.length} ingredient${recipe.ingredients.length===1?'o':'i'}${recipe.weight ? ' · ' + recipe.weight + ' ' + recipe.unit : ''}</div>
         </div>
         <div style="text-align:right;">
           ${hasAllPrices
-            ? `<div style="font-size:20px;color:#22c55e;font-weight:700;">€ ${total.toFixed(2)}</div>
+            ? `<div style="font-size:18px;color:#22c55e;font-weight:700;">costo € ${total.toFixed(2)}</div>
                ${perKg ? '<div style="font-size:11px;color:#c8a96e;">€ ' + perKg.toFixed(2) + ' / kg</div>' : ''}`
             : `<div style="font-size:12px;color:#f87171;">Prezzi mancanti</div>`
           }
-        ${(recipe.hoursWork||0)+(recipe.hoursCook||0)+(recipe.hoursRise||0) > 0
-            ? `<div style="font-size:10px;color:#555;margin-top:2px;">incl. operai + energia</div>`
-            : ''}
         </div>
-      </div>`;
+      </div>
+      ${pezzRows}`;
     grid.appendChild(card);
   });
 }
