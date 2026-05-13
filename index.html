@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v41">
+<meta name="app-version" content="v42">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pasticceria">
@@ -11,7 +11,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Confronto Prezzi Fornitori v41</title>
+<title>Confronto Prezzi Fornitori v42</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -659,7 +659,7 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v41</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v42</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
@@ -3706,32 +3706,47 @@ function saveRecipe() {
 
 // ── Recipe detail ──
 let viewingRecipeIdx = null;
-function openRecipeDetail(idx) {
+let currentRecipeMult = 1;
+
+function openRecipeDetail(idx, mult) {
   viewingRecipeIdx = idx;
+  currentRecipeMult = mult || 1;
   const recipe = recipes[idx];
+  const m = currentRecipeMult;
   const { total, ingredientsTotal, laborCost, energyCost, hoursWork, hoursCook, hoursRise, breakdown, hasAllPrices } = calcRecipeCost(recipe);
   const perKg = recipe.weight ? calcPerKg(recipe, total) : null;
-  let html = `<div style="font-family:'Playfair Display',serif;font-size:22px;color:#e8e0d0;margin-bottom:4px;">${recipe.name}</div>`;
-  if (recipe.weight) html += `<div style="font-size:11px;color:#555;margin-bottom:16px;">Peso totale: ${recipe.weight} ${recipe.unit}</div>`;
+
+  // Selettore moltiplicatore
+  let html = `<div style="font-family:'Playfair Display',serif;font-size:22px;color:#e8e0d0;margin-bottom:8px;">${recipe.name}</div>`;
+  html += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;background:#13151f;border-radius:10px;padding:10px 14px;">
+    <span style="font-size:11px;color:#888;letter-spacing:1px;text-transform:uppercase;flex:1;">N° impasti</span>
+    ${[1,2,3,4,5,6,7,8,9,10].map(n => `<button onclick="openRecipeDetail(${idx},${n})" style="width:32px;height:32px;border-radius:8px;border:none;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;background:${n===m?'#c8a96e':'#2a2d3a'};color:${n===m?'#13151f':'#888'};">${n}</button>`).join('')}
+  </div>`;
+  if (recipe.weight) {
+    const totalWeight = recipe.weight * m;
+    html += `<div style="font-size:12px;color:#c8a96e;margin-bottom:14px;text-align:center;">Peso totale: <b>${totalWeight % 1 === 0 ? totalWeight : totalWeight.toFixed(1)} ${recipe.unit}</b>${m > 1 ? ' (' + recipe.weight + ' × ' + m + ')' : ''}</div>`;
+  }
   html += `<div style="font-size:10px;color:#fff;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">INGREDIENTI</div>`;
   breakdown.forEach(ing => {
     const priceRow = rawData.find(r => r.product === ing.product);
     const bestPrice = priceRow ? getPrices(priceRow)[0] : null;
+    const scaledQty = ing.qty * m;
+    const scaledCost = ing.cost != null ? ing.cost * m : null;
     html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #2a2d3a;">
       <div>
         <div style="font-size:13px;color:#e8e0d0;">${ing.product}</div>
-        <div style="font-size:11px;color:#555;">${ing.qty} ${ing.unit}${bestPrice ? ' · ' + bestPrice.s + ' € ' + bestPrice.v.toFixed(2) + '/kg' : ''}</div>
+        <div style="font-size:11px;color:#555;">${scaledQty % 1 === 0 ? scaledQty : scaledQty.toFixed(1)} ${ing.unit}${bestPrice ? ' · ' + bestPrice.s + ' € ' + bestPrice.v.toFixed(2) + '/kg' : ''}</div>
       </div>
-      <div style="font-size:14px;color:${ing.cost != null ? '#22c55e' : '#f87171'};font-weight:700;">
-        ${ing.cost != null ? '€ ' + (ing.cost >= 1 ? ing.cost.toFixed(2) : ing.cost.toFixed(3)) : '—'}
+      <div style="font-size:14px;color:${scaledCost != null ? '#22c55e' : '#f87171'};font-weight:700;">
+        ${scaledCost != null ? '€ ' + (scaledCost >= 1 ? scaledCost.toFixed(2) : scaledCost.toFixed(3)) : '—'}
       </div>
     </div>`;
   });
   html += `<div style="margin-top:16px;background:#13151f;border-radius:10px;padding:14px;">
     <div style="font-size:9px;color:#c8a96e;letter-spacing:2px;margin-bottom:10px;">RIEPILOGO COSTI</div>
     <div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1a1d2e;">
-      <span style="color:#888;font-size:12px;">🧂 Ingredienti</span>
-      <span style="font-size:13px;color:#e8e0d0;font-weight:600;">€ ${ingredientsTotal.toFixed(2)}</span>
+      <span style="color:#888;font-size:12px;">🧂 Ingredienti${m > 1 ? ' ×'+m : ''}</span>
+      <span style="font-size:13px;color:#e8e0d0;font-weight:600;">€ ${(ingredientsTotal*m).toFixed(2)}</span>
     </div>
     ${hoursWork > 0 ? `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1a1d2e;">
       <span style="color:#888;font-size:12px;">👷 Operai (${(function(h){const hh=Math.floor(h),mm=Math.round((h-hh)*60);return (hh>0?hh+'h ':'')+( mm>0?mm+'min':'');})( hoursWork)} × €20)</span>
@@ -3742,8 +3757,8 @@ function openRecipeDetail(idx) {
       <span style="font-size:13px;color:#e8e0d0;font-weight:600;">€ ${energyCost.toFixed(2)}</span>
     </div>` : ''}
     <div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid #3a3d4a;">
-      <span style="color:#fff;font-size:14px;font-weight:700;">Costo totale</span>
-      <span style="font-size:22px;color:#22c55e;font-weight:700;">€ ${total.toFixed(2)}</span>
+      <span style="color:#fff;font-size:14px;font-weight:700;">Costo totale${m > 1 ? ' ×'+m : ''}</span>
+      <span style="font-size:22px;color:#22c55e;font-weight:700;">€ ${(ingredientsTotal*m + laborCost + energyCost).toFixed(2)}</span>
     </div>
     ${perKg ? `<div style="display:flex;justify-content:space-between;margin-top:4px;">
       <span style="color:#888;font-size:12px;">Costo per kg</span>
