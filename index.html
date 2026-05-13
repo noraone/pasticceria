@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v37">
+<meta name="app-version" content="v40">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pasticceria">
@@ -11,7 +11,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Confronto Prezzi Fornitori v37</title>
+<title>Confronto Prezzi Fornitori v40</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -486,7 +486,21 @@ window.loadFromSync = async function() {
     }
     _lastSyncData = newHash;
     if (newRecipes && Array.isArray(newRecipes) && newRecipes.length > 0) {
-      recipes = newRecipes;
+      // Merge: per ogni ricetta prendi la versione più recente (per id)
+      const localMap = {};
+      recipes.forEach(r => { if (r.id) localMap[r.id] = r; });
+      const fireMap = {};
+      newRecipes.forEach(r => { if (r.id) fireMap[r.id] = r; });
+      const allIds = new Set([...Object.keys(localMap), ...Object.keys(fireMap)]);
+      const merged = [];
+      allIds.forEach(id => {
+        const loc = localMap[id], fire = fireMap[id];
+        if (loc && fire) merged.push((loc.updatedAt || 0) >= (fire.updatedAt || 0) ? loc : fire);
+        else merged.push(loc || fire);
+      });
+      // Aggiungi anche ricette senza id (vecchie)
+      newRecipes.filter(r => !r.id).forEach(r => merged.push(r));
+      recipes = merged;
       localStorage.setItem('ricette_v1', JSON.stringify(recipes));
       if (typeof renderRecipesList === 'function') renderRecipesList();
     }
@@ -502,6 +516,31 @@ window.initFirebase = async function() {
   const el = document.getElementById('fb-status');
   if (el) { el.textContent = '☁️ Connessione...'; el.style.color = '#888'; }
   await window.loadFromSync();
+  // Se Firebase non ha ricette ma localStorage le ha, le carica su Firebase
+  try {
+    const localRecipes = JSON.parse(localStorage.getItem('ricette_v1') || '[]');
+    if (localRecipes.length > 0) {
+      // Merge locale con Firebase, preferendo il più recente
+      const fbMap = {};
+      recipes.forEach(r => { if (r.id) fbMap[r.id] = r; });
+      const locMap = {};
+      localRecipes.forEach(r => { if (r.id) locMap[r.id] = r; });
+      const allIds2 = new Set([...Object.keys(fbMap), ...Object.keys(locMap)]);
+      const merged2 = [];
+      allIds2.forEach(id => {
+        const f = fbMap[id], l = locMap[id];
+        if (f && l) merged2.push((l.updatedAt||0) >= (f.updatedAt||0) ? l : f);
+        else merged2.push(f || l);
+      });
+      localRecipes.filter(r => !r.id).forEach(r => merged2.push(r));
+      if (merged2.length > recipes.length) {
+        recipes = merged2;
+        localStorage.setItem('ricette_v1', JSON.stringify(recipes));
+        if (typeof renderRecipesList === 'function') renderRecipesList();
+        window.saveToFirebase();
+      }
+    }
+  } catch(e) {}
   _syncInterval = setInterval(window.loadFromSync, 15000);
 };
 
@@ -620,7 +659,7 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v37</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v40</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
@@ -3645,7 +3684,16 @@ function saveRecipe() {
   const hoursWork = (parseInt(document.getElementById('recipe-hours-work-h').value)||0) + (parseInt(document.getElementById('recipe-hours-work-m').value)||0)/60;
   const hoursCook = (parseInt(document.getElementById('recipe-hours-cook-h').value)||0) + (parseInt(document.getElementById('recipe-hours-cook-m').value)||0)/60;
   const hoursRise = (parseInt(document.getElementById('recipe-hours-rise-h').value)||0) + (parseInt(document.getElementById('recipe-hours-rise-m').value)||0)/60;
-  const recipe = { name, weight, unit, hoursWork, hoursCook, hoursRise, ingredients: currentRecipeIngredients };
+  const now = Date.now();
+  const existing = editingRecipeIdx !== null ? recipes[editingRecipeIdx] : null;
+  const recipeId = existing ? (existing.id || now) : now;
+  // Backup: mantieni ultimi 5 snapshot
+  const oldHistory = existing ? (existing.history || []) : [];
+  const newHistory = existing
+    ? [...oldHistory.slice(-19), { ...existing, history: undefined, savedAt: existing.updatedAt || now }]
+    : [];
+  const recipe = { id: recipeId, name, weight, unit, hoursWork, hoursCook, hoursRise,
+                   ingredients: currentRecipeIngredients, updatedAt: now, history: newHistory };
   if (editingRecipeIdx !== null) {
     recipes[editingRecipeIdx] = recipe;
   } else {
@@ -3703,7 +3751,11 @@ function openRecipeDetail(idx) {
     </div>` : ''}
   </div>`;
   // Delete button
-  html += `<button onclick="deleteRecipe(${idx})" style="width:100%;margin-top:12px;padding:10px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;border-radius:8px;font-family:inherit;font-size:12px;cursor:pointer;">🗑 Elimina ricetta</button>`;
+  // Pulsante storico se ci sono backup
+  if (recipe.history && recipe.history.length > 0) {
+    html += `<button onclick="openRecipeHistory(${idx})" style="width:100%;margin-top:8px;padding:10px;background:rgba(99,179,237,0.1);border:1px solid rgba(99,179,237,0.3);color:#63b3ed;border-radius:8px;font-family:inherit;font-size:12px;cursor:pointer;">🕐 Storico versioni (${recipe.history.length})</button>`;
+  }
+  html += `<button onclick="deleteRecipe(${idx})" style="width:100%;margin-top:8px;padding:10px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;border-radius:8px;font-family:inherit;font-size:12px;cursor:pointer;">🗑 Elimina ricetta</button>`;
   document.getElementById('recipe-detail-content').innerHTML = html;
   document.getElementById('recipe-detail-bg').style.display = 'block';
 }
@@ -3715,6 +3767,41 @@ function closeRecipeDetail() {
 function editCurrentRecipe() {
   closeRecipeDetail();
   openEditRecipeModal(viewingRecipeIdx);
+}
+
+function openRecipeHistory(idx) {
+  const recipe = recipes[idx];
+  if (!recipe.history || !recipe.history.length) return;
+  const items = recipe.history.slice().reverse().map((snap, i) => {
+    const d = new Date(snap.savedAt || snap.updatedAt || 0);
+    const label = d.toLocaleString('it-IT');
+    return `<div style="background:#1a1d2e;border:1px solid #2a2d3a;border-radius:8px;padding:10px 14px;margin-bottom:8px;">
+      <div style="font-size:12px;color:#63b3ed;margin-bottom:6px;">📅 ${label}</div>
+      <div style="font-size:11px;color:#aaa;margin-bottom:8px;">${snap.ingredients ? snap.ingredients.length : 0} ingredienti · ${snap.weight ? snap.weight + ' ' + snap.unit : 'peso non inserito'}</div>
+      <button onclick="restoreRecipeVersion(${idx}, ${recipe.history.length - 1 - i})" style="padding:6px 12px;background:rgba(200,169,110,0.15);border:1px solid rgba(200,169,110,0.4);color:#c8a96e;border-radius:6px;font-family:inherit;font-size:11px;cursor:pointer;">↩️ Ripristina questa versione</button>
+    </div>`;
+  }).join('');
+  const modal = document.getElementById('modal');
+  modal.innerHTML = `<div style="padding:4px;">
+    <div style="font-family:'Playfair Display',serif;font-size:18px;color:#e8e0d0;margin-bottom:4px;">${recipe.name}</div>
+    <div style="font-size:10px;color:#555;letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;">STORICO VERSIONI</div>
+    ${items}
+    <button onclick="closeModal()" style="width:100%;margin-top:4px;padding:10px;background:#13151f;color:#7a7a8a;border-radius:7px;font-size:12px;font-family:inherit;border:1px solid #2a2d3a;cursor:pointer;">Chiudi</button>
+  </div>`;
+  document.getElementById('modal-bg').style.display = 'flex';
+}
+
+function restoreRecipeVersion(recipeIdx, historyIdx) {
+  if (!confirm('Ripristinare questa versione? La versione attuale sarà salvata nello storico.')) return;
+  const recipe = recipes[recipeIdx];
+  const snap = recipe.history[historyIdx];
+  const currentAsSnap = { ...recipe, history: undefined, savedAt: recipe.updatedAt || Date.now() };
+  const newHistory = [...(recipe.history || []).filter((_, i) => i !== historyIdx), currentAsSnap].slice(-20);
+  recipes[recipeIdx] = { ...snap, id: recipe.id, history: newHistory, updatedAt: Date.now(), savedAt: undefined };
+  saveRecipesLocal();
+  renderRecipes();
+  closeModal();
+  openRecipeDetail(recipeIdx);
 }
 
 function deleteRecipe(idx) {
