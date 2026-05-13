@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v51">
+<meta name="app-version" content="v52">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pasticceria">
@@ -11,7 +11,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Confronto Prezzi Fornitori v51</title>
+<title>Confronto Prezzi Fornitori v52</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -659,7 +659,7 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v51</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v52</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
@@ -3726,13 +3726,19 @@ function saveRecipe() {
   saveRecipesLocal();
   closeRecipeModal();
   renderRecipes();
-  // Toast conferma salvataggio
-  const t = document.getElementById('toast');
-  const msg = document.getElementById('toast-msg');
-  if (t && msg) {
-    msg.textContent = '✅ Ricetta salvata con prezzi congelati!';
-    t.style.display = 'block';
-    setTimeout(() => t.style.display = 'none', 3500);
+  // Feedback visivo: bottone diventa verde per 2 secondi
+  const saveBtn = document.getElementById('save-recipe-btn');
+  if (saveBtn) {
+    saveBtn.style.background = 'rgba(34,197,94,0.3)';
+    saveBtn.style.borderColor = '#22c55e';
+    saveBtn.style.color = '#22c55e';
+    saveBtn.style.transform = 'scale(1.02)';
+    setTimeout(() => {
+      saveBtn.style.background = 'rgba(200,169,110,0.15)';
+      saveBtn.style.borderColor = 'rgba(200,169,110,0.4)';
+      saveBtn.style.color = '#c8a96e';
+      saveBtn.style.transform = 'scale(1)';
+    }, 2000);
   }
 }
 
@@ -3909,9 +3915,15 @@ function updateMarginPreview() {
   tempPezzature.forEach(p => {
     const costPez = costPerG * p.grams + (p.bagCost || 0);
     const sellPez = costPez * (1 + margin/100);
-    html += `<div style="display:flex;justify-content:space-between;background:#1a1d2e;border-radius:6px;padding:5px 10px;">
-      <span style="color:#aaa;font-size:12px;">${p.grams >= 1000 ? p.grams/1000+'kg' : p.grams+'g'} → costo € ${costPez.toFixed(2)}</span>
-      <span style="color:#22c55e;font-size:13px;font-weight:700;">vendi € ${sellPez.toFixed(2)}</span>
+    html += `<div style="display:flex;justify-content:space-between;align-items:center;background:#1a1d2e;border-radius:8px;padding:8px 12px;">
+      <div>
+        <div style="color:#fbbf24;font-size:15px;font-weight:700;">${p.grams >= 1000 ? p.grams/1000+' kg' : p.grams+' g'}</div>
+        <div style="color:#666;font-size:11px;">costo € ${costPez.toFixed(2)}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="color:#22c55e;font-size:20px;font-weight:800;">€ ${sellPez.toFixed(2)}</div>
+        <div style="color:#666;font-size:11px;">prezzo vendita</div>
+      </div>
     </div>`;
   });
   html += '</div>';
@@ -4664,7 +4676,7 @@ function cancelGeminiKey() {
       <div id="recipe-per-kg-cost" style="text-align:right;font-size:12px;color:#c8a96e;margin-top:4px;"></div>
     </div>
 
-    <button onclick="saveRecipe()" style="width:100%;padding:13px;background:rgba(200,169,110,0.15);border:1px solid rgba(200,169,110,0.4);color:#c8a96e;border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;">💾 Salva ricetta</button>
+    <button id="save-recipe-btn" onclick="saveRecipe()" style="width:100%;padding:13px;background:rgba(200,169,110,0.15);border:1px solid rgba(200,169,110,0.4);color:#c8a96e;border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;margin-bottom:8px;transition:all 0.3s;">💾 Salva ricetta</button>
     <button onclick="closeRecipeModal()" style="width:100%;padding:11px;background:none;border:1px solid #2a2d3a;color:#888;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer;">Chiudi</button>
   </div>
 </div>
