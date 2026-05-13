@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v34">
+<meta name="app-version" content="v35">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pasticceria">
@@ -11,7 +11,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Confronto Prezzi Fornitori v34</title>
+<title>Confronto Prezzi Fornitori v35</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -522,16 +522,22 @@ window.addEventListener('load', () => setTimeout(window.initFirebase, 500));
 .tab-btn {
   flex: 1; padding: 12px 8px 10px;
   background: none; border: none;
-  color: #555; font-family: inherit;
+  color: #444; font-family: inherit;
   font-size: 11px; letter-spacing: 1px;
   text-transform: uppercase; cursor: pointer;
   display: flex; flex-direction: column;
   align-items: center; gap: 4px;
-  transition: color 0.2s;
+  transition: color 0.2s, transform 0.1s;
   -webkit-tap-highlight-color: transparent;
 }
-.tab-btn.active { color: #c8a96e; }
-.tab-btn svg { width: 22px; height: 22px; }
+.tab-btn svg { width: 24px; height: 24px; }
+#tab-prezzi { color: rgba(251,191,36,0.45); }
+#tab-ricette { color: rgba(34,197,94,0.45); }
+#tab-catalogo { color: rgba(99,179,237,0.45); }
+#tab-prezzi.active { color: #fbbf24; }
+#tab-ricette.active { color: #22c55e; }
+#tab-catalogo.active { color: #63b3ed; }
+.tab-btn.active { transform: translateY(-2px); }
 #page-prezzi, #page-ricette { display: none; }
 #page-prezzi.active, #page-ricette.active { display: block; }
 /* bottom padding for tab bar */
@@ -607,7 +613,7 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v34</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v35</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
