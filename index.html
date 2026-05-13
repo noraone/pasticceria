@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v53">
+<meta name="app-version" content="v55">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pasticceria">
@@ -11,7 +11,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Confronto Prezzi Fornitori v53</title>
+<title>Confronto Prezzi Fornitori v55</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -436,6 +436,9 @@ window.saveToFirebase = async function() {
       );
       if (el) { el.textContent = '☁️ Salvato'; el.style.color = '#22c55e'; }
       _lastSyncData = _stableHash(rawData);
+      // Backup locale come sicurezza aggiuntiva
+      try { localStorage.setItem('pasticceria_rawdata_v1', JSON.stringify(rawData)); } catch(e) {}
+      try { localStorage.setItem('pasticceria_suppliers_v1', JSON.stringify(allSuppliers)); } catch(e) {}
     } else {
       const err = await resp.json();
       console.warn('Firebase save error:', err);
@@ -444,6 +447,16 @@ window.saveToFirebase = async function() {
   } catch(e) {
     console.warn('Firebase fetch error:', e);
     if (el) { el.textContent = '⚠️ Offline'; el.style.color = '#f87171'; }
+    // Prova a recuperare dal backup locale
+    try {
+      const localRaw = JSON.parse(localStorage.getItem('pasticceria_rawdata_v1') || 'null');
+      if (localRaw && localRaw.length > 0 && rawData.every(r => !Object.keys(r).some(k => !['product','date'].includes(k)))) {
+        rawData.length = 0;
+        localRaw.forEach(r => rawData.push(r));
+        render(); updateStats();
+        if (el) { el.textContent = '⚠️ Offline (dati locali)'; el.style.color = '#fbbf24'; }
+      }
+    } catch(e2) {}
   }
   _fbSaving = false;
 };
@@ -515,6 +528,16 @@ window.loadFromSync = async function() {
 window.initFirebase = async function() {
   const el = document.getElementById('fb-status');
   if (el) { el.textContent = '☁️ Connessione...'; el.style.color = '#888'; }
+  // Carica subito dati locali come pre-caricamento
+  try {
+    const localRaw = JSON.parse(localStorage.getItem('pasticceria_rawdata_v1') || 'null');
+    const localSupp = JSON.parse(localStorage.getItem('pasticceria_suppliers_v1') || 'null');
+    if (localRaw && localRaw.length > 0) {
+      rawData.length = 0; localRaw.forEach(r => rawData.push(r));
+      if (localSupp) localSupp.forEach(s => { if (!allSuppliers.includes(s)) allSuppliers.push(s); });
+      render(); updateStats();
+    }
+  } catch(e) {}
   await window.loadFromSync();
   // Se Firebase non ha ricette ma localStorage le ha, le carica su Firebase
   try {
@@ -659,7 +682,7 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v53</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v55</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
@@ -3718,6 +3741,8 @@ function saveRecipe() {
   const hoursWork = (parseInt(document.getElementById('recipe-hours-work-h').value)||0) + (parseInt(document.getElementById('recipe-hours-work-m').value)||0)/60;
   const hoursCook = (parseInt(document.getElementById('recipe-hours-cook-h').value)||0) + (parseInt(document.getElementById('recipe-hours-cook-m').value)||0)/60;
   const hoursRise = (parseInt(document.getElementById('recipe-hours-rise-h').value)||0) + (parseInt(document.getElementById('recipe-hours-rise-m').value)||0)/60;
+  const hoursPack = (parseInt(document.getElementById('recipe-hours-pack-h').value)||0) + (parseInt(document.getElementById('recipe-hours-pack-m').value)||0)/60;
+  const margin = parseFloat((document.getElementById('recipe-margin').value||'0').replace(',','.'))||0;
   const now = Date.now();
   const existing = editingRecipeIdx !== null ? recipes[editingRecipeIdx] : null;
   const recipeId = existing ? (existing.id || now) : now;
