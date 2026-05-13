@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v49">
+<meta name="app-version" content="v50">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pasticceria">
@@ -11,7 +11,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Confronto Prezzi Fornitori v49</title>
+<title>Confronto Prezzi Fornitori v50</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -659,7 +659,7 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v49</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v50</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
@@ -2954,10 +2954,17 @@ function calcRecipeCost(recipe) {
   let total = 0;
   let hasAllPrices = true;
   const breakdown = recipe.ingredients.map(ing => {
-    const cost = calcIngredientCost(ing.product, ing.qty, ing.unit);
+    let cost = calcIngredientCost(ing.product, ing.qty, ing.unit);
+    let usingLocked = false;
+    // Se non c'è prezzo live, usa il prezzo congelato
+    if (cost == null && ing.lockedPrice) {
+      const qtyKg = ing.unit === 'kg' ? ing.qty : ing.qty / 1000;
+      cost = ing.lockedPrice * qtyKg;
+      usingLocked = true;
+    }
     if (cost == null) { hasAllPrices = false; return { ...ing, cost: null }; }
     total += cost;
-    return { ...ing, cost };
+    return { ...ing, cost, usingLocked };
   });
   const ingredientsTotal = total;
 
@@ -3703,8 +3710,14 @@ function saveRecipe() {
     ? [...oldHistory.slice(-19), { ...existing, history: undefined, savedAt: existing.updatedAt || now }]
     : [];
   const pezzature = tempPezzature.length > 0 ? [...tempPezzature] : (existing && existing.pezzature) ? existing.pezzature : [];
+  // Congela il prezzo attuale in ogni ingrediente (usato se i prezzi vengono cancellati)
+  const frozenIngredients = currentRecipeIngredients.map(ing => {
+    const row = rawData.find(r => r.product === ing.product);
+    const best = row ? getPrices(row)[0] : null;
+    return { ...ing, lockedPrice: best ? best.v : (ing.lockedPrice || null) };
+  });
   const recipe = { id: recipeId, name, weight, unit, hoursWork, hoursCook, hoursRise, hoursPack, margin, pezzature,
-                   ingredients: currentRecipeIngredients, updatedAt: now, history: newHistory };
+                   ingredients: frozenIngredients, updatedAt: now, history: newHistory };
   if (editingRecipeIdx !== null) {
     recipes[editingRecipeIdx] = recipe;
   } else {
@@ -3748,7 +3761,7 @@ function openRecipeDetail(idx, mult) {
     html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #2a2d3a;">
       <div>
         <div style="font-size:13px;color:#e8e0d0;">${ing.product}</div>
-        <div style="font-size:11px;color:#555;">${scaledQty % 1 === 0 ? scaledQty : scaledQty.toFixed(1)} ${ing.unit}${bestPrice ? ' · ' + bestPrice.s + ' € ' + bestPrice.v.toFixed(2) + '/kg' : ''}</div>
+        <div style="font-size:11px;color:${bestPrice && bestPrice.s === '📌 bloccato' ? '#fbbf24' : '#555'};">${scaledQty % 1 === 0 ? scaledQty : scaledQty.toFixed(1)} ${ing.unit}${bestPrice ? ' · ' + bestPrice.s + ' €' + bestPrice.v.toFixed(2) + '/kg' : ' · prezzo mancante'}</div>
       </div>
       <div style="font-size:14px;color:${scaledCost != null ? '#22c55e' : '#f87171'};font-weight:700;">
         ${scaledCost != null ? '€ ' + (scaledCost >= 1 ? scaledCost.toFixed(2) : scaledCost.toFixed(3)) : '—'}
