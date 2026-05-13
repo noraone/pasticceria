@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v43">
+<meta name="app-version" content="v47">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pasticceria">
@@ -11,7 +11,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Confronto Prezzi Fornitori v43</title>
+<title>Confronto Prezzi Fornitori v47</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -659,7 +659,7 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v43</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v47</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
@@ -2948,6 +2948,7 @@ function calcIngredientCost(productName, qty, unit) {
 
 const COST_LABOR_PER_HOUR = 20;    // € per ora operai
 const COST_ENERGY_PER_HOUR = 3.50; // € per ora energia
+const COST_PACK_PER_HOUR = 15;     // € per ora confezionamento
 
 function calcRecipeCost(recipe) {
   let total = 0;
@@ -2962,7 +2963,8 @@ function calcRecipeCost(recipe) {
 
   // Labor cost
   const hoursWork = recipe.hoursWork || 0;
-  const laborCost = hoursWork * COST_LABOR_PER_HOUR;
+  const hoursPack = recipe.hoursPack || 0;
+  const laborCost = hoursWork * COST_LABOR_PER_HOUR + hoursPack * COST_PACK_PER_HOUR;
   total += laborCost;
 
   // Energy cost (cooking + rising)
@@ -2971,7 +2973,9 @@ function calcRecipeCost(recipe) {
   const energyCost = (hoursCook + hoursRise) * COST_ENERGY_PER_HOUR;
   total += energyCost;
 
-  return { total, ingredientsTotal, laborCost, energyCost, hoursWork, hoursCook, hoursRise, breakdown, hasAllPrices };
+  const margin = recipe.margin || 0;
+  const sellPrice = margin > 0 ? total * (1 + margin/100) : null;
+  return { total, ingredientsTotal, laborCost, energyCost, hoursWork, hoursCook, hoursRise, hoursPack, breakdown, hasAllPrices, margin, sellPrice };
 }
 
 function calcPerKg(recipe, totalCost) {
@@ -3064,6 +3068,10 @@ function openEditRecipeModal(idx) {
   restoreTime('recipe-voice-work','recipe-hours-work-h','recipe-hours-work-m','recipe-work-display', recipe.hoursWork);
   restoreTime('recipe-voice-cook','recipe-hours-cook-h','recipe-hours-cook-m','recipe-cook-display', recipe.hoursCook);
   restoreTime('recipe-voice-rise','recipe-hours-rise-h','recipe-hours-rise-m','recipe-rise-display', recipe.hoursRise);
+  restoreTime('recipe-voice-pack','recipe-hours-pack-h','recipe-hours-pack-m','recipe-pack-display', recipe.hoursPack);
+  if (recipe.margin) { document.getElementById('recipe-margin').value = recipe.margin; updateMarginPreview(); }
+  tempPezzature = recipe.pezzature ? JSON.parse(JSON.stringify(recipe.pezzature)) : [];
+  renderPezzatureList();
   const sel = document.getElementById('ing-product-select');
   sel.innerHTML = '<option value="">— Seleziona articolo —</option>';
   rawData.forEach(r => {
@@ -3210,7 +3218,7 @@ function clearTimeFields() {
     if (el) el.textContent = '';
   });
   ['recipe-hours-work-h','recipe-hours-work-m','recipe-hours-cook-h','recipe-hours-cook-m',
-   'recipe-hours-rise-h','recipe-hours-rise-m'].forEach(id => {
+   'recipe-hours-rise-h','recipe-hours-rise-m','recipe-hours-pack-h','recipe-hours-pack-m'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.value = '0';
   });
@@ -3256,6 +3264,8 @@ function renderIngredientsList() {
   const hoursWork = (parseInt(document.getElementById('recipe-hours-work-h').value)||0) + (parseInt(document.getElementById('recipe-hours-work-m').value)||0)/60;
   const hoursCook = (parseInt(document.getElementById('recipe-hours-cook-h').value)||0) + (parseInt(document.getElementById('recipe-hours-cook-m').value)||0)/60;
   const hoursRise = (parseInt(document.getElementById('recipe-hours-rise-h').value)||0) + (parseInt(document.getElementById('recipe-hours-rise-m').value)||0)/60;
+  const hoursPack = (parseInt(document.getElementById('recipe-hours-pack-h').value)||0) + (parseInt(document.getElementById('recipe-hours-pack-m').value)||0)/60;
+  const margin = parseFloat((document.getElementById('recipe-margin').value||'0').replace(',','.'))||0;
   const laborCostPreview = hoursWork * COST_LABOR_PER_HOUR;
   const energyCostPreview = (hoursCook + hoursRise) * COST_ENERGY_PER_HOUR;
   const grandTotal = total + laborCostPreview + energyCostPreview;
@@ -3692,7 +3702,8 @@ function saveRecipe() {
   const newHistory = existing
     ? [...oldHistory.slice(-19), { ...existing, history: undefined, savedAt: existing.updatedAt || now }]
     : [];
-  const recipe = { id: recipeId, name, weight, unit, hoursWork, hoursCook, hoursRise,
+  const pezzature = tempPezzature.length > 0 ? [...tempPezzature] : (existing && existing.pezzature) ? existing.pezzature : [];
+  const recipe = { id: recipeId, name, weight, unit, hoursWork, hoursCook, hoursRise, hoursPack, margin, pezzature,
                    ingredients: currentRecipeIngredients, updatedAt: now, history: newHistory };
   if (editingRecipeIdx !== null) {
     recipes[editingRecipeIdx] = recipe;
@@ -3720,8 +3731,8 @@ function openRecipeDetail(idx, mult) {
   let html = `<div style="font-family:'Playfair Display',serif;font-size:22px;color:#e8e0d0;margin-bottom:8px;">${recipe.name}</div>`;
   html += `<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;background:#13151f;border-radius:10px;padding:10px 14px;">
     <span style="font-size:11px;color:#888;letter-spacing:1px;text-transform:uppercase;flex:1;">N° impasti</span>
-    <input id="mult-input" type="number" min="0.1" step="0.1" value="${m}" 
-      oninput="refreshRecipeDetail(${idx}, parseFloat(this.value)||1)"
+    <input id="mult-input" type="text" inputmode="decimal" value="${m}" 
+      oninput="refreshRecipeDetail(${idx}, parseFloat(this.value.replace(',','.'))||1)"
       style="width:80px;background:#2a2d3a;border:1px solid #3a3d4a;color:#c8a96e;font-family:inherit;font-size:18px;font-weight:700;text-align:center;border-radius:8px;padding:6px;outline:none;">
   </div>`;
   if (recipe.weight) {
@@ -3758,6 +3769,10 @@ function openRecipeDetail(idx, mult) {
       <span style="color:#888;font-size:12px;">⚡ Energia (${(function(h){const hh=Math.floor(h),mm=Math.round((h-hh)*60);return (hh>0?hh+'h ':'')+( mm>0?mm+'min':'');})( hoursCook+hoursRise)} × €3,50)</span>
       <span style="font-size:13px;color:#e8e0d0;font-weight:600;">€ ${energyCost.toFixed(2)}</span>
     </div>` : ''}
+    ${hoursPack > 0 ? `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1a1d2e;">
+      <span style="color:#888;font-size:12px;">📦 Confezionamento (${(function(h){const hh=Math.floor(h),mm=Math.round((h-hh)*60);return (hh>0?hh+'h ':'')+( mm>0?mm+'min':'')})(hoursPack)})</span>
+      <span style="font-size:13px;color:#e8e0d0;font-weight:600;">€ ${(hoursPack * COST_PACK_PER_HOUR).toFixed(2)}</span>
+    </div>` : ''}
     <div style="display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid #3a3d4a;">
       <span style="color:#fff;font-size:14px;font-weight:700;">Costo totale${m > 1 ? ' ×'+m : ''}</span>
       <span style="font-size:22px;color:#22c55e;font-weight:700;">€ ${(ingredientsTotal*m + laborCost + energyCost).toFixed(2)}</span>
@@ -3766,6 +3781,33 @@ function openRecipeDetail(idx, mult) {
       <span style="color:#888;font-size:12px;">Costo per kg</span>
       <span style="font-size:15px;color:#c8a96e;font-weight:700;">€ ${perKg.toFixed(2)} / kg</span>
     </div>` : ''}
+    ${recipe.weight && total > 0 ? (() => {
+      const weightG = recipe.unit === 'kg' ? recipe.weight * 1000 * m : recipe.weight * m;
+      const costPerG = (ingredientsTotal*m + laborCost + energyCost) / weightG;
+      const pezz = recipe.pezzature || [];
+      let pHtml = `<div style="margin-top:12px;padding-top:10px;border-top:2px solid rgba(200,169,110,0.3);">
+        <div style="font-size:9px;color:#c8a96e;letter-spacing:2px;margin-bottom:10px;">📦 PEZZATURE</div>`;
+      if (pezz.length === 0) {
+        pHtml += `<div style="font-size:12px;color:#555;text-align:center;padding:8px 0;">Nessuna pezzatura — aggiungila modificando la ricetta</div>`;
+      } else {
+        pezz.forEach(p => {
+          const costPez = costPerG * p.grams + (p.bagCost || 0);
+          const sellPez = recipe.margin > 0 ? costPez * (1 + recipe.margin/100) : null;
+          pHtml += `<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #1a1d2e;">
+            <div>
+              <div style="font-size:13px;color:#e8e0d0;font-weight:700;">${p.grams >= 1000 ? p.grams/1000 + ' kg' : p.grams + ' g'}</div>
+              <div style="font-size:10px;color:#555;">Costo: €${costPez.toFixed(2)}${p.bagCost ? ' (incl. sacchetto €'+p.bagCost.toFixed(2)+')' : ''}</div>
+            </div>
+            ${sellPez ? `<div style="text-align:right;">
+              <div style="font-size:16px;color:#22c55e;font-weight:800;">€ ${sellPez.toFixed(2)}</div>
+              <div style="font-size:10px;color:#555;">+${recipe.margin}%</div>
+            </div>` : ''}
+          </div>`;
+        });
+      }
+      pHtml += `</div>`;
+      return pHtml;
+    })() : ''}
   </div>`;
   // Delete button
   // Pulsante storico se ci sono backup
@@ -3775,6 +3817,49 @@ function openRecipeDetail(idx, mult) {
   html += `<button onclick="deleteRecipe(${idx})" style="width:100%;margin-top:8px;padding:10px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;border-radius:8px;font-family:inherit;font-size:12px;cursor:pointer;">🗑 Elimina ricetta</button>`;
   document.getElementById('recipe-detail-content').innerHTML = html;
   document.getElementById('recipe-detail-bg').style.display = 'block';
+}
+
+let tempPezzature = [];
+
+function addPezzatura() {
+  const g = parseFloat((document.getElementById('new-pez-grams').value||'').replace(',','.'));
+  const b = parseFloat((document.getElementById('new-pez-bag').value||'').replace(',','.')) || 0;
+  if (!g || g <= 0) { alert('Inserisci i grammi della pezzatura'); return; }
+  tempPezzature.push({ grams: g, bagCost: b || 0 });
+  tempPezzature.sort((a,b) => a.grams - b.grams);
+  document.getElementById('new-pez-grams').value = '';
+  document.getElementById('new-pez-bag').value = '';
+  renderPezzatureList();
+}
+
+function removePezzatura(i) {
+  tempPezzature.splice(i, 1);
+  renderPezzatureList();
+}
+
+function renderPezzatureList() {
+  const el = document.getElementById('pezzature-list');
+  if (!el) return;
+  if (tempPezzature.length === 0) { el.innerHTML = '<div style="font-size:11px;color:#555;text-align:center;">Nessuna pezzatura</div>'; return; }
+  el.innerHTML = tempPezzature.map((p, i) => `
+    <div style="display:flex;justify-content:space-between;align-items:center;background:#2a2d3e;border-radius:7px;padding:7px 10px;">
+      <span style="color:#fbbf24;font-size:13px;font-weight:700;">${p.grams >= 1000 ? p.grams/1000+' kg' : p.grams+'g'}</span>
+      <span style="color:#888;font-size:11px;">${p.bagCost > 0 ? '+ €'+p.bagCost.toFixed(2)+' sacchetto' : 'senza costo sacchetto'}</span>
+      <button onclick="removePezzatura(${i})" style="background:none;border:none;color:#f87171;font-size:16px;cursor:pointer;">✕</button>
+    </div>`).join('');
+}
+
+function updateMarginPreview() {
+  const margin = parseFloat((document.getElementById('recipe-margin').value||'0').replace(',','.'))||0;
+  const prev = document.getElementById('margin-preview');
+  if (!prev) return;
+  if (margin <= 0) { prev.textContent = ''; return; }
+  // Calcola costo attuale dalla preview
+  const laborPrev = ((parseInt(document.getElementById('recipe-hours-work-h').value)||0) + (parseInt(document.getElementById('recipe-hours-work-m').value)||0)/60) * COST_LABOR_PER_HOUR
+    + ((parseInt(document.getElementById('recipe-hours-pack-h').value)||0) + (parseInt(document.getElementById('recipe-hours-pack-m').value)||0)/60) * COST_PACK_PER_HOUR;
+  const energyPrev = ((parseInt(document.getElementById('recipe-hours-cook-h').value)||0) + (parseInt(document.getElementById('recipe-hours-cook-m').value)||0)/60
+    + (parseInt(document.getElementById('recipe-hours-rise-h').value)||0) + (parseInt(document.getElementById('recipe-hours-rise-m').value)||0)/60) * COST_ENERGY_PER_HOUR;
+  prev.textContent = margin > 0 ? 'Con costo totale: prezzo vendita = costo ÷ (1 - ' + margin + '%)' : '';
 }
 
 function refreshRecipeDetail(idx, mult) {
@@ -4438,10 +4523,46 @@ function cancelGeminiKey() {
           <div id="recipe-rise-display" style="font-size:12px;color:#c8a96e;min-width:60px;text-align:right;"></div>
         </div>
       </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="font-size:11px;color:#fff;width:90px;flex-shrink:0;">📦 Confezion.</div>
+          <input id="recipe-voice-pack" type="text" placeholder="es: 30 minuti"
+            style="flex:1;background:#1a1d2e;border:1px solid #4a4d5a;color:#fbbf24;padding:8px 10px;border-radius:8px;font-family:inherit;font-size:14px;outline:none;"
+            oninput="parseTimeField(this,'recipe-hours-pack-h','recipe-hours-pack-m')">
+          <div id="recipe-pack-display" style="font-size:12px;color:#c8a96e;min-width:60px;text-align:right;"></div>
+        </div>
+      </div>
+
+      <!-- Margine vendita -->
+      <div style="background:#13151f;border-radius:10px;padding:12px;margin-bottom:12px;">
+        <div style="font-size:9px;color:#c8a96e;letter-spacing:2px;margin-bottom:10px;">💰 PREZZO DI VENDITA</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="font-size:11px;color:#fff;flex:1;">Margine di guadagno</div>
+          <input id="recipe-margin" type="text" inputmode="decimal" placeholder="es: 40"
+            style="width:70px;background:#2a2d3e;border:1px solid #5a5d6a;color:#22c55e;padding:8px 10px;border-radius:8px;font-family:inherit;font-size:16px;font-weight:700;text-align:center;outline:none;"
+            oninput="updateMarginPreview()">
+          <div style="font-size:14px;color:#888;">%</div>
+        </div>
+        <div id="margin-preview" style="font-size:11px;color:#555;margin-top:6px;text-align:right;"></div>
+      </div>
+
+      <!-- Pezzature -->
+      <div style="background:#13151f;border-radius:10px;padding:12px;margin-bottom:12px;">
+        <div style="font-size:9px;color:#c8a96e;letter-spacing:2px;margin-bottom:10px;">📦 PEZZATURE</div>
+        <div id="pezzature-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;"></div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input id="new-pez-grams" type="text" inputmode="decimal" placeholder="Grammi (es: 500)"
+            style="flex:1;background:#2a2d3e;border:1px solid #5a5d6a;color:#fbbf24;padding:8px 10px;border-radius:8px;font-family:inherit;font-size:13px;outline:none;">
+          <input id="new-pez-bag" type="text" inputmode="decimal" placeholder="€ sacchetto"
+            style="width:90px;background:#2a2d3e;border:1px solid #5a5d6a;color:#aaa;padding:8px 10px;border-radius:8px;font-family:inherit;font-size:13px;outline:none;">
+          <button onclick="addPezzatura()" style="width:36px;height:36px;background:#22c55e;border:none;color:#fff;border-radius:8px;font-size:20px;cursor:pointer;flex-shrink:0;">+</button>
+        </div>
+      </div>
+
       <!-- hidden numeric fields used by saveRecipe/calcRecipeCost -->
       <input type="hidden" id="recipe-hours-work-h"><input type="hidden" id="recipe-hours-work-m">
       <input type="hidden" id="recipe-hours-cook-h"><input type="hidden" id="recipe-hours-cook-m">
       <input type="hidden" id="recipe-hours-rise-h"><input type="hidden" id="recipe-hours-rise-m">
+      <input type="hidden" id="recipe-hours-pack-h"><input type="hidden" id="recipe-hours-pack-m">
     </div>
 
     <div style="font-size:10px;color:#fff;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">INGREDIENTI</div>
