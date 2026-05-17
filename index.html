@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v55">
+<meta name="app-version" content="v56">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pasticceria">
@@ -11,7 +11,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Confronto Prezzi Fornitori v55</title>
+<title>Confronto Prezzi Fornitori v56</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -682,7 +682,7 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v55</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v56</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
@@ -849,7 +849,10 @@ body { padding-bottom: 70px; }
 <div id="update-bg" onclick="closeUpdateModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;z-index:200;padding:20px;">
   <div onclick="event.stopPropagation()" style="background:#22253a;border:1px solid rgba(251,191,36,0.35);border-radius:14px;width:100%;max-width:540px;box-shadow:0 40px 80px rgba(0,0,0,0.7);animation:popIn 0.22s ease;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;">
   <div style="overflow-y:auto;flex:1;padding:28px 28px 0 28px;">
-    <div style="font-size:9px;letter-spacing:4px;color:#fbbf24;margin-bottom:6px;text-transform:uppercase;">Aggiornamento Prezzi</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <div style="font-size:9px;letter-spacing:4px;color:#fbbf24;text-transform:uppercase;">Aggiornamento Prezzi</div>
+      <button onclick="closeUpdateModal()" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:34px;height:34px;border-radius:50%;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
+    </div>
     <h2 style="font-family:'Playfair Display',serif;font-size:19px;color:#fff;margin-bottom:8px;">Aggiorna prezzi con la voce</h2>
 
     <p style="font-size:12px;color:#7a7a8a;margin-bottom:18px;line-height:1.7;">
