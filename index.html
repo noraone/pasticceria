@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v58">
+<meta name="app-version" content="v63">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pasticceria">
@@ -11,7 +11,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Confronto Prezzi Fornitori v58</title>
+<title>Confronto Prezzi Fornitori v63</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -423,6 +423,7 @@ window.saveToFirebase = async function() {
         allSuppliers: _toFirestore(allSuppliers),
         productAliases: _toFirestore(typeof productAliases !== 'undefined' ? productAliases : {}),
         recipes: _toFirestore(typeof recipes !== 'undefined' ? recipes : []),
+        listino: _toFirestore(typeof listino !== 'undefined' ? listino : []),
         updatedAt: { stringValue: new Date().toISOString() }
       }
     };
@@ -481,6 +482,7 @@ window.loadFromSync = async function() {
     const newSuppliers = _fromFirestore(doc.fields.allSuppliers);
     const newAliases = _fromFirestore(doc.fields.productAliases);
     const newRecipes = doc.fields.recipes ? _fromFirestore(doc.fields.recipes) : null;
+    const newListino = doc.fields.listino ? _fromFirestore(doc.fields.listino) : null;
 
     const _stableHash = (data) => JSON.stringify(
       (data || []).map(r => { const s = {}; Object.keys(r).sort().forEach(k => s[k] = r[k]); return s; }).sort((a,b) => (a.product||'').localeCompare(b.product||''))
@@ -499,6 +501,7 @@ window.loadFromSync = async function() {
       try { Object.assign(productAliases, newAliases); } catch(e){}
     }
     _lastSyncData = newHash;
+    if (newListino && Array.isArray(newListino)) { if(typeof applyListinoFromFirebase==='function') applyListinoFromFirebase(newListino); }
     if (newRecipes && Array.isArray(newRecipes) && newRecipes.length > 0) {
       // Merge: per ogni ricetta prendi la versione più recente (per id)
       const localMap = {};
@@ -567,6 +570,259 @@ window.initFirebase = async function() {
   } catch(e) {}
   _syncInterval = setInterval(window.loadFromSync, 15000);
 };
+
+// ── LISTINO VENDITA ──────────────────────────────────────────
+let listino = JSON.parse(localStorage.getItem('listino_v1') || '[]');
+const _defaultMarkup = localStorage.getItem('listino_markup_default') || '40';
+let listinoView = 'list';
+let editingListinoId = null;
+let selectedIva = 10;
+
+function saveDefaultMarkup() {
+  const val = document.getElementById('listino-markup-global').value || '40';
+  localStorage.setItem('listino_markup_default', val);
+}
+
+function saveListinoLocal() {
+  localStorage.setItem('listino_v1', JSON.stringify(listino));
+  if (window.saveToFirebase) window.saveToFirebase();
+}
+
+function openListino() {
+  document.getElementById('listino-bg').style.display = 'flex';
+  // Ripristina markup default salvato
+  const saved = localStorage.getItem('listino_markup_default') || '40';
+  document.getElementById('listino-markup-global').value = saved;
+  renderListino();
+}
+function closeListino() {
+  document.getElementById('listino-bg').style.display = 'none';
+  const s = document.getElementById('listino-search');
+  if (s) s.value = '';
+}
+
+function switchListinoView(v) {
+  listinoView = v;
+  document.getElementById('listino-list-btn').style.background = v==='list' ? 'rgba(168,85,247,0.2)' : 'none';
+  document.getElementById('listino-list-btn').style.color = v==='list' ? '#a855f7' : '#555';
+  document.getElementById('listino-grid-btn').style.background = v==='grid' ? 'rgba(168,85,247,0.2)' : 'none';
+  document.getElementById('listino-grid-btn').style.color = v==='grid' ? '#a855f7' : '#555';
+  renderListino();
+}
+
+function getGlobalMarkup() {
+  return parseFloat((document.getElementById('listino-markup-global').value||'40').replace(',','.')) || 40;
+}
+
+function calcListinoItem(item) {
+  const imp = item.imponibile || 0;
+  const iva = item.iva || 10;
+  const markup = item.markup != null ? item.markup : getGlobalMarkup();
+  const ivaAmt = imp * iva / 100;
+  const acquisto = imp + ivaAmt;
+  const vendita = acquisto * (1 + markup / 100);
+  return { imp, iva, ivaAmt, acquisto, vendita, markup };
+}
+
+function renderListino() {
+  const el = document.getElementById('listino-content');
+  const q = (document.getElementById('listino-search')?.value || '').toLowerCase().trim();
+  const filtered = q
+    ? listino.filter(i => i.name.toLowerCase().includes(q))
+    : listino;
+  if (!listino.length) {
+    el.innerHTML = '<div style="text-align:center;color:#555;font-size:14px;padding:60px 20px;">Nessun articolo.<br>Premi ＋ Aggiungi per iniziare.</div>';
+    return;
+  }
+  if (!filtered.length) {
+    el.innerHTML = '<div style="text-align:center;color:#555;font-size:14px;padding:40px 20px;">Nessun risultato per <span style="color:#a855f7">' + q + '</span></div>';
+    return;
+  }
+  if (listinoView === 'list') renderListinoList(el, filtered);
+  else renderListinoGrid(el, filtered);
+}
+
+function renderListinoList(el, items) {
+  items = items || listino;
+  el.innerHTML = items.map(item => {
+    const c = calcListinoItem(item);
+    return `<div style="background:#13151f;border:1px solid #2a2d3a;border-radius:12px;padding:14px;margin-bottom:10px;cursor:pointer;" onclick="openEditListinoItem(${item.id})">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div>
+          <div style="font-size:15px;color:#e8e0d0;font-weight:700;">${item.name}</div>
+          <div style="font-size:11px;color:#555;margin-top:2px;">${item.unit || 'kg'} · IVA ${c.iva}% · markup ${c.markup}%</div>
+        </div>
+        <button onclick="event.stopPropagation();deleteListinoItem(${item.id})" style="background:none;border:none;color:#555;font-size:16px;cursor:pointer;padding:2px 6px;">✕</button>
+      </div>
+      ${item.priceHistory && item.priceHistory.length > 0 ? `<div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap;">
+        ${item.priceHistory.map(h => {
+          const hAcq = h.imponibile * (1 + h.iva/100);
+          return '<span style="font-size:10px;background:#1a1d2e;border:1px solid #2a2d3a;border-radius:5px;padding:2px 7px;color:#555;">'+h.date+' · €'+hAcq.toFixed(2)+'</span>';
+        }).join('')}
+      </div>` : ''}
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+        <div style="background:#1a1d2e;border-radius:8px;padding:8px;text-align:center;">
+          <div style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:1px;">Imponibile</div>
+          <div style="font-size:14px;color:#fbbf24;font-weight:700;">€ ${c.imp.toFixed(2)}</div>
+        </div>
+        <div style="background:#1a1d2e;border-radius:8px;padding:8px;text-align:center;">
+          <div style="font-size:10px;color:#555;text-transform:uppercase;letter-spacing:1px;">Acquisto</div>
+          <div style="font-size:14px;color:#e8e0d0;font-weight:700;">€ ${c.acquisto.toFixed(2)}</div>
+        </div>
+        <div style="background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);border-radius:8px;padding:8px;text-align:center;">
+          <div style="font-size:10px;color:#a855f7;text-transform:uppercase;letter-spacing:1px;">Vendita</div>
+          <div style="font-size:16px;color:#a855f7;font-weight:800;">€ ${c.vendita.toFixed(2)}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderListinoGrid(el, items) {
+  items = items || listino;
+  el.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">` +
+  items.map(item => {
+    const c = calcListinoItem(item);
+    return `<div style="background:#13151f;border:1px solid #2a2d3a;border-radius:12px;padding:12px;cursor:pointer;" onclick="openEditListinoItem(${item.id})">
+      <div style="font-size:13px;color:#e8e0d0;font-weight:700;margin-bottom:4px;word-break:break-word;">${item.name}</div>
+      <div style="font-size:10px;color:#555;margin-bottom:8px;">${item.unit || 'kg'} · IVA ${c.iva}%</div>
+      <div style="font-size:11px;color:#888;">Acquisto</div>
+      <div style="font-size:14px;color:#e8e0d0;font-weight:700;margin-bottom:6px;">€ ${c.acquisto.toFixed(2)}</div>
+      <div style="background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);border-radius:7px;padding:6px;text-align:center;">
+        <div style="font-size:10px;color:#a855f7;">vendita</div>
+        <div style="font-size:18px;color:#a855f7;font-weight:800;">€ ${c.vendita.toFixed(2)}</div>
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+function selectIva(val) {
+  selectedIva = val;
+  [4,10,22].forEach(v => {
+    const btn = document.getElementById('iva-'+v);
+    if (!btn) return;
+    if (v === val) {
+      btn.style.background = 'rgba(168,85,247,0.2)';
+      btn.style.borderColor = 'rgba(168,85,247,0.5)';
+      btn.style.color = '#a855f7';
+    } else {
+      btn.style.background = '#2a2d3e';
+      btn.style.borderColor = '#4a4d5a';
+      btn.style.color = '#888';
+    }
+  });
+  updateListinoPreview();
+}
+
+function updateListinoPreview() {
+  const imp = parseFloat((document.getElementById('la-imponibile').value||'').replace(',','.')) || 0;
+  const markup = parseFloat((document.getElementById('la-markup').value||'').replace(',','.')) || getGlobalMarkup();
+  const prev = document.getElementById('listino-add-preview');
+  if (imp <= 0) { prev.style.display = 'none'; return; }
+  const ivaAmt = imp * selectedIva / 100;
+  const acquisto = imp + ivaAmt;
+  const vendita = acquisto * (1 + markup / 100);
+  document.getElementById('prev-imponibile').textContent = '€ ' + imp.toFixed(2);
+  document.getElementById('prev-iva').textContent = selectedIva + '% → € ' + ivaAmt.toFixed(2);
+  document.getElementById('prev-acquisto').textContent = '€ ' + acquisto.toFixed(2);
+  document.getElementById('prev-vendita').textContent = '€ ' + vendita.toFixed(2);
+  prev.style.display = 'block';
+}
+
+function openAddListinoItem() {
+  editingListinoId = null;
+  document.getElementById('listino-add-title').textContent = 'Nuovo articolo';
+  document.getElementById('la-name').value = '';
+  document.getElementById('la-imponibile').value = '';
+  document.getElementById('la-markup').value = '';
+  document.getElementById('la-unit').value = 'kg';
+  document.getElementById('listino-add-preview').style.display = 'none';
+  document.getElementById('listino-save-btn').textContent = '💾 Salva';
+  selectIva(10);
+  document.getElementById('listino-add-bg').style.display = 'flex';
+  setTimeout(() => document.getElementById('la-name').focus(), 100);
+}
+
+function openEditListinoItem(id) {
+  const item = listino.find(i => i.id === id);
+  if (!item) return;
+  editingListinoId = id;
+  document.getElementById('listino-add-title').textContent = 'Modifica articolo';
+  document.getElementById('la-name').value = item.name;
+  document.getElementById('la-imponibile').value = item.imponibile;
+  document.getElementById('la-markup').value = item.markup != null ? item.markup : '';
+  document.getElementById('la-unit').value = item.unit || 'kg';
+  document.getElementById('listino-save-btn').textContent = '💾 Aggiorna';
+  selectIva(item.iva || 10);
+  updateListinoPreview();
+  document.getElementById('listino-add-bg').style.display = 'flex';
+}
+
+function closeAddListinoItem() {
+  document.getElementById('listino-add-bg').style.display = 'none';
+  editingListinoId = null;
+}
+
+function saveListinoItem() {
+  const name = document.getElementById('la-name').value.trim();
+  const imponibile = parseFloat((document.getElementById('la-imponibile').value||'').replace(',','.'));
+  const markupRaw = document.getElementById('la-markup').value.trim();
+  const markup = markupRaw ? parseFloat(markupRaw.replace(',','.')) : null;
+  const unit = document.getElementById('la-unit').value;
+  if (!name) { alert('Inserisci il nome dell\'articolo'); return; }
+  if (!imponibile || imponibile <= 0) { alert('Inserisci un imponibile valido'); return; }
+
+  const existing = editingListinoId ? listino.find(i => i.id === editingListinoId) : null;
+  // Storico: mantieni ultimi 3 prezzi con data
+  const today = new Date().toLocaleDateString('it-IT');
+  let priceHistory = existing ? (existing.priceHistory || []) : [];
+  if (existing && existing.imponibile !== imponibile) {
+    // Il prezzo è cambiato: aggiungi vecchio prezzo allo storico
+    priceHistory = [...priceHistory, { imponibile: existing.imponibile, iva: existing.iva, date: existing.lastDate || today }].slice(-3);
+  }
+  const item = { id: editingListinoId || Date.now(), name, imponibile, iva: selectedIva, markup, unit, updatedAt: Date.now(), lastDate: today, priceHistory };
+  if (editingListinoId) {
+    const idx = listino.findIndex(i => i.id === editingListinoId);
+    if (idx >= 0) listino[idx] = item;
+  } else {
+    listino.push(item);
+  }
+  listino.sort((a,b) => a.name.localeCompare(b.name));
+  saveListinoLocal();
+  closeAddListinoItem();
+  renderListino();
+  // Feedback visivo
+  const btn = document.getElementById('listino-save-btn');
+  if (btn) { btn.style.background='rgba(34,197,94,0.3)'; btn.style.borderColor='#22c55e'; btn.style.color='#22c55e'; setTimeout(()=>{btn.style.background='rgba(168,85,247,0.2)';btn.style.borderColor='rgba(168,85,247,0.5)';btn.style.color='#a855f7';},1500); }
+}
+
+function deleteListinoItem(id) {
+  const item = listino.find(i => i.id === id);
+  if (!item) return;
+  if (!confirm('Eliminare "' + item.name + '" dal listino?')) return;
+  listino = listino.filter(i => i.id !== id);
+  saveListinoLocal();
+  renderListino();
+}
+
+// Carica listino da Firebase
+function applyListinoFromFirebase(data) {
+  if (data && Array.isArray(data) && data.length > 0) {
+    const local = JSON.parse(localStorage.getItem('listino_v1') || '[]');
+    const fbMap = {}, locMap = {};
+    data.forEach(i => { if(i.id) fbMap[i.id] = i; });
+    local.forEach(i => { if(i.id) locMap[i.id] = i; });
+    const allIds = new Set([...Object.keys(fbMap), ...Object.keys(locMap)]);
+    const merged = [];
+    allIds.forEach(id => {
+      const f = fbMap[id], l = locMap[id];
+      if (f && l) merged.push((l.updatedAt||0) >= (f.updatedAt||0) ? l : f);
+      else merged.push(f || l);
+    });
+    listino = merged.sort((a,b) => a.name.localeCompare(b.name));
+    localStorage.setItem('listino_v1', JSON.stringify(listino));
+  }
+}
 
 window.addEventListener('load', () => setTimeout(window.initFirebase, 500));
 </script>
@@ -660,6 +916,15 @@ body { padding-bottom: 70px; }
       <div style="font-size:10px;color:#666;">Voce o fattura</div>
     </button>
 
+    <!-- 🏷️ LISTINO VENDITA -->
+    <button onclick="pulseAndRun(this, openListino)" class="btn-tap" style="background:#13151f;border:2px solid rgba(168,85,247,0.3);border-radius:16px;padding:28px 16px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;-webkit-tap-highlight-color:transparent;">
+      <div style="width:56px;height:56px;background:rgba(168,85,247,0.12);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="#a855f7"><path d="M7 7h10v2H7zm0 4h7v2H7zm0 4h4v2H7zM5 3H3v18h18V3H5zm14 16H5V5h14v14z"/></svg>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:#a855f7;letter-spacing:1px;">NEGOZIO</div>
+      <div style="font-size:10px;color:#666;">Prezzi vendita</div>
+    </button>
+
     <!-- 📷 FOTO FATTURA — nascosta, codice conservato per uso futuro -->
   </div>
 
@@ -683,12 +948,98 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v58</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v63</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
     <button id="btn-aggiorna-software" onclick="avviaAggiornamento()" oncontextmenu="resetGhToken();return false;" id="github-publish-btn" style="flex:1;padding:10px;background:rgba(99,179,237,0.08);border:1px solid rgba(99,179,237,0.2);color:#63b3ed;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">🔄 Aggiorna software</button>
     <button id="btn-cestino" onclick="azzeraPrezzi()" style="padding:10px 14px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);color:#f87171;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;" title="Azzera tutti i prezzi">🗑️</button>
+  </div>
+</div>
+
+<!-- LISTINO VENDITA VIEW -->
+<div id="listino-bg" style="display:none;position:fixed;inset:0;background:#0d0f1a;z-index:250;flex-direction:column;overflow:hidden;">
+  <!-- Header -->
+  <div style="flex-shrink:0;background:#13151f;border-bottom:1px solid #2a2d3a;padding:max(16px,env(safe-area-inset-top,16px)) 16px 12px;display:flex;align-items:center;gap:12px;">
+    <button onclick="closeListino()" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:36px;height:36px;border-radius:50%;font-size:18px;cursor:pointer;flex-shrink:0;">←</button>
+    <div style="flex:1;">
+      <div style="font-size:9px;color:#a855f7;letter-spacing:3px;text-transform:uppercase;">Negozio</div>
+      <div style="font-family:'Playfair Display',serif;font-size:18px;color:#fff;">Prezzi Vendita</div>
+    </div>
+    <div style="display:flex;gap:6px;">
+      <button id="listino-list-btn" onclick="switchListinoView('list')" style="background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.4);color:#a855f7;padding:6px 12px;border-radius:7px;font-family:inherit;font-size:11px;cursor:pointer;">📋 Lista</button>
+      <button id="listino-grid-btn" onclick="switchListinoView('grid')" style="background:none;border:1px solid #2a2d3a;color:#555;padding:6px 12px;border-radius:7px;font-family:inherit;font-size:11px;cursor:pointer;">⊞ Griglia</button>
+    </div>
+  </div>
+  <!-- Markup globale -->
+  <div style="flex-shrink:0;background:#13151f;border-bottom:1px solid #2a2d3a;padding:10px 16px;display:flex;align-items:center;gap:12px;">
+    <span style="font-size:11px;color:#888;flex:1;">Markup predefinito</span>
+    <input id="listino-markup-global" type="text" inputmode="decimal" value="40"
+      oninput="saveDefaultMarkup();renderListino()"
+      style="width:60px;background:#2a2d3e;border:1px solid #5a5d6a;color:#a855f7;padding:6px 8px;border-radius:7px;font-family:inherit;font-size:15px;font-weight:700;text-align:center;outline:none;">
+    <span style="font-size:13px;color:#888;">%</span>
+    <button onclick="openAddListinoItem()" style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);color:#a855f7;padding:7px 14px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">＋ Aggiungi</button>
+  </div>
+  <!-- Ricerca -->
+  <div style="flex-shrink:0;padding:8px 14px;background:#0d0f1a;">
+    <input id="listino-search" type="text" placeholder="🔍 Cerca articolo..."
+      oninput="renderListino()"
+      style="width:100%;background:#13151f;border:1px solid #2a2d3a;color:#e8e0d0;padding:9px 14px;border-radius:9px;font-family:inherit;font-size:14px;outline:none;box-sizing:border-box;">
+  </div>
+  <!-- Content -->
+  <div id="listino-content" style="flex:1;overflow-y:auto;padding:12px 14px 80px;"></div>
+</div>
+
+<!-- MODAL AGGIUNGI ARTICOLO LISTINO -->
+<div id="listino-add-bg" onclick="closeAddListinoItem()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);align-items:center;justify-content:center;z-index:300;padding:20px;">
+  <div onclick="event.stopPropagation()" style="background:#1a1d2e;border:1px solid rgba(168,85,247,0.4);border-radius:16px;padding:22px;width:100%;max-width:420px;max-height:85vh;overflow-y:auto;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <div style="font-family:'Playfair Display',serif;font-size:18px;color:#fff;" id="listino-add-title">Nuovo articolo</div>
+      <button onclick="closeAddListinoItem()" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:32px;height:32px;border-radius:50%;font-size:18px;cursor:pointer;">✕</button>
+    </div>
+    <!-- Nome -->
+    <div style="margin-bottom:12px;">
+      <div style="font-size:10px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Nome articolo</div>
+      <input id="la-name" type="text" placeholder="Es: Farina Viola" style="width:100%;background:#2a2d3e;border:1px solid #4a4d5a;color:#e8e0d0;padding:10px 12px;border-radius:9px;font-family:inherit;font-size:14px;outline:none;">
+    </div>
+    <!-- Imponibile -->
+    <div style="margin-bottom:12px;">
+      <div style="font-size:10px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Imponibile (€)</div>
+      <input id="la-imponibile" type="text" inputmode="decimal" placeholder="Es: 1.00" oninput="updateListinoPreview()" style="width:100%;background:#2a2d3e;border:1px solid #4a4d5a;color:#fbbf24;padding:10px 12px;border-radius:9px;font-family:inherit;font-size:18px;font-weight:700;outline:none;">
+    </div>
+    <!-- IVA -->
+    <div style="margin-bottom:12px;">
+      <div style="font-size:10px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Aliquota IVA</div>
+      <div style="display:flex;gap:8px;">
+        <button class="iva-btn" onclick="selectIva(4)" id="iva-4" style="flex:1;padding:10px;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;background:#2a2d3e;border:1px solid #4a4d5a;color:#888;">4%</button>
+        <button class="iva-btn" onclick="selectIva(10)" id="iva-10" style="flex:1;padding:10px;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.5);color:#a855f7;">10%</button>
+        <button class="iva-btn" onclick="selectIva(22)" id="iva-22" style="flex:1;padding:10px;border-radius:9px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;background:#2a2d3e;border:1px solid #4a4d5a;color:#888;">22%</button>
+      </div>
+    </div>
+    <!-- Markup personalizzato -->
+    <div style="margin-bottom:14px;">
+      <div style="font-size:10px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Markup % (lascia vuoto per usare il default)</div>
+      <input id="la-markup" type="text" inputmode="decimal" placeholder="Default: 40%" oninput="updateListinoPreview()" style="width:100%;background:#2a2d3e;border:1px solid #4a4d5a;color:#22c55e;padding:10px 12px;border-radius:9px;font-family:inherit;font-size:16px;font-weight:700;outline:none;">
+    </div>
+    <!-- Unità di misura -->
+    <div style="margin-bottom:14px;">
+      <div style="font-size:10px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-bottom:6px;">Unità di misura</div>
+      <select id="la-unit" style="width:100%;background:#2a2d3e;border:1px solid #4a4d5a;color:#e8e0d0;padding:10px 12px;border-radius:9px;font-family:inherit;font-size:14px;outline:none;">
+        <option value="kg">al kg</option>
+        <option value="lt">al litro</option>
+        <option value="pz">al pezzo</option>
+        <option value="100g">per 100g</option>
+        <option value="conf">a confezione</option>
+      </select>
+    </div>
+    <!-- Preview -->
+    <div id="listino-add-preview" style="background:#13151f;border-radius:10px;padding:12px;margin-bottom:16px;display:none;">
+      <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:#888;font-size:12px;">Imponibile</span><span id="prev-imponibile" style="color:#fbbf24;font-size:13px;font-weight:700;"></span></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;"><span style="color:#888;font-size:12px;">IVA</span><span id="prev-iva" style="color:#888;font-size:13px;"></span></div>
+      <div style="display:flex;justify-content:space-between;padding:4px 0;border-top:1px solid #2a2d3a;margin-top:4px;"><span style="color:#fff;font-size:12px;">Prezzo acquisto</span><span id="prev-acquisto" style="color:#fff;font-size:14px;font-weight:700;"></span></div>
+      <div style="display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid rgba(168,85,247,0.3);margin-top:6px;"><span style="color:#a855f7;font-size:13px;font-weight:700;">💰 Prezzo vendita</span><span id="prev-vendita" style="color:#a855f7;font-size:18px;font-weight:800;"></span></div>
+    </div>
+    <button onclick="saveListinoItem()" style="width:100%;padding:13px;background:rgba(168,85,247,0.2);border:2px solid rgba(168,85,247,0.5);color:#a855f7;border-radius:10px;font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;" id="listino-save-btn">💾 Salva</button>
   </div>
 </div>
 
