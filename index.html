@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v56">
+<meta name="app-version" content="v57">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pasticceria">
@@ -11,7 +11,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Confronto Prezzi Fornitori v56</title>
+<title>Confronto Prezzi Fornitori v57</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -356,9 +356,10 @@
 }
 </style>
 <style>
-/* Nascondi pulsanti desktop (Aggiorna software + cestino) su iPhone/mobile */
+/* Su iPhone nascondi solo Aggiorna software e cestino, mostra Nuovo articolo */
 @media (max-width: 768px) {
-  #desktop-btns { display: none !important; }
+  #btn-aggiorna-software { display: none !important; }
+  #btn-cestino { display: none !important; }
 }
 </style>
 <script>
@@ -682,12 +683,12 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v56</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v57</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
-    <button onclick="avviaAggiornamento()" oncontextmenu="resetGhToken();return false;" id="github-publish-btn" style="flex:1;padding:10px;background:rgba(99,179,237,0.08);border:1px solid rgba(99,179,237,0.2);color:#63b3ed;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">🔄 Aggiorna software</button>
-    <button onclick="azzeraPrezzi()" style="padding:10px 14px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);color:#f87171;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;" title="Azzera tutti i prezzi">🗑️</button>
+    <button id="btn-aggiorna-software" onclick="avviaAggiornamento()" oncontextmenu="resetGhToken();return false;" id="github-publish-btn" style="flex:1;padding:10px;background:rgba(99,179,237,0.08);border:1px solid rgba(99,179,237,0.2);color:#63b3ed;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">🔄 Aggiorna software</button>
+    <button id="btn-cestino" onclick="azzeraPrezzi()" style="padding:10px 14px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);color:#f87171;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;" title="Azzera tutti i prezzi">🗑️</button>
   </div>
 </div>
 
