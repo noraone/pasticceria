@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v63">
+<meta name="app-version" content="v64">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pasticceria">
@@ -11,7 +11,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Confronto Prezzi Fornitori v63</title>
+<title>Confronto Prezzi Fornitori v64</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -599,6 +599,8 @@ function closeListino() {
   document.getElementById('listino-bg').style.display = 'none';
   const s = document.getElementById('listino-search');
   if (s) s.value = '';
+  const sug = document.getElementById('listino-suggestions');
+  if (sug) sug.style.display = 'none';
 }
 
 function switchListinoView(v) {
@@ -622,6 +624,44 @@ function calcListinoItem(item) {
   const acquisto = imp + ivaAmt;
   const vendita = acquisto * (1 + markup / 100);
   return { imp, iva, ivaAmt, acquisto, vendita, markup };
+}
+
+function onListinoSearch(q) {
+  renderListino();
+  const sug = document.getElementById('listino-suggestions');
+  if (!q || q.length < 2) { sug.style.display = 'none'; return; }
+  const ql = q.toLowerCase();
+  // Cerca nel catalogo (rawData) articoli non ancora in negozio
+  const inNegozio = new Set(listino.map(i => i.name.toUpperCase()));
+  const matches = rawData
+    .filter(r => r.product.toLowerCase().includes(ql) && !inNegozio.has(r.product))
+    .slice(0, 8);
+  if (!matches.length) { sug.style.display = 'none'; return; }
+  sug.innerHTML = matches.map(r => {
+    const best = getPrices(r)[0];
+    return `<div onclick="quickAddFromCatalog('${r.product.replace(/'/g,"\\'")}', ${best ? best.v : 0})"
+      style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #2a2d3a;display:flex;justify-content:space-between;align-items:center;">
+      <span style="color:#e8e0d0;font-size:13px;">${r.product}</span>
+      ${best ? '<span style="color:#fbbf24;font-size:12px;">€'+best.v.toFixed(2)+'/kg</span>' : '<span style="color:#555;font-size:11px;">nessun prezzo</span>'}
+    </div>`;
+  }).join('');
+  sug.style.display = 'block';
+}
+
+function quickAddFromCatalog(name, imponibile) {
+  document.getElementById('listino-suggestions').style.display = 'none';
+  document.getElementById('listino-search').value = '';
+  // Apri modal con nome e imponibile pre-compilati, solo IVA da scegliere
+  editingListinoId = null;
+  document.getElementById('listino-add-title').textContent = 'Aggiungi dal catalogo';
+  document.getElementById('la-name').value = name;
+  document.getElementById('la-imponibile').value = imponibile > 0 ? imponibile.toFixed(2) : '';
+  document.getElementById('la-markup').value = '';
+  document.getElementById('la-unit').value = 'kg';
+  document.getElementById('listino-save-btn').textContent = '💾 Aggiungi al negozio';
+  selectIva(10);
+  updateListinoPreview();
+  document.getElementById('listino-add-bg').style.display = 'flex';
 }
 
 function renderListino() {
@@ -948,7 +988,7 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v63</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v64</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
@@ -978,13 +1018,16 @@ body { padding-bottom: 70px; }
       oninput="saveDefaultMarkup();renderListino()"
       style="width:60px;background:#2a2d3e;border:1px solid #5a5d6a;color:#a855f7;padding:6px 8px;border-radius:7px;font-family:inherit;font-size:15px;font-weight:700;text-align:center;outline:none;">
     <span style="font-size:13px;color:#888;">%</span>
-    <button onclick="openAddListinoItem()" style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);color:#a855f7;padding:7px 14px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">＋ Aggiungi</button>
+    <button onclick="openAddListinoItem()" style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);color:#a855f7;padding:7px 14px;border-radius:8px;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;">＋ Nuovo</button>
   </div>
-  <!-- Ricerca -->
-  <div style="flex-shrink:0;padding:8px 14px;background:#0d0f1a;">
-    <input id="listino-search" type="text" placeholder="🔍 Cerca articolo..."
-      oninput="renderListino()"
-      style="width:100%;background:#13151f;border:1px solid #2a2d3a;color:#e8e0d0;padding:9px 14px;border-radius:9px;font-family:inherit;font-size:14px;outline:none;box-sizing:border-box;">
+  <!-- Barra ricerca/aggiunta prominente -->
+  <div style="flex-shrink:0;padding:10px 14px;background:#0d0f1a;position:relative;">
+    <input id="listino-search" type="text" placeholder="🔍 Cerca o aggiungi articolo..."
+      oninput="onListinoSearch(this.value)"
+      autocomplete="off"
+      style="width:100%;background:#1a1d2e;border:2px solid rgba(168,85,247,0.4);color:#e8e0d0;padding:11px 14px;border-radius:10px;font-family:inherit;font-size:15px;outline:none;box-sizing:border-box;">
+    <!-- Suggerimenti catalogo -->
+    <div id="listino-suggestions" style="display:none;position:absolute;left:14px;right:14px;top:54px;background:#1a1d2e;border:1px solid rgba(168,85,247,0.3);border-radius:10px;z-index:10;max-height:200px;overflow-y:auto;"></div>
   </div>
   <!-- Content -->
   <div id="listino-content" style="flex:1;overflow-y:auto;padding:12px 14px 80px;"></div>
