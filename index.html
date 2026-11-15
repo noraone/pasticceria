@@ -363,8 +363,8 @@
 }
 </style>
 <script>
-// API key setup
-try { if(!localStorage.getItem('anthropic_api_key')) localStorage.setItem('anthropic_api_key', atob('c2stYW50LWFwaTAzLWFKaDgxcEdSanRDeUNQMWJ5NlQ0S3VHNDVMY2xON0dMOWNoYXdrU3JvWmttTEtWQUlzMW1FejM4clBrTEJVZnJZd0NwUkVKR0VPUlVfZWxxWjl2c2lRLW9vNHljd0FB')); } catch(e){}
+// Chiave API rimossa il 15/11/2026: la lettura fatture non è usata. Si cancella anche dai dispositivi.
+try { localStorage.removeItem('anthropic_api_key'); } catch(e){}
 
 // ── SYNC VIA FIREBASE REST API ──
 // Nessuna libreria esterna — usa fetch() diretto alle API REST di Firebase
