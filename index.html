@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v64">
+<meta name="app-version" content="v65">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pasticceria">
@@ -11,7 +11,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Confronto Prezzi Fornitori v64</title>
+<title>Confronto Prezzi Fornitori v65</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -363,6 +363,128 @@
 }
 </style>
 <script>
+// ── ACCESSO CON EMAIL E PASSWORD (Firebase Authentication, senza librerie) ──
+// La password non viene mai salvata: sul dispositivo resta solo un gettone di accesso.
+// PROVA = pagina di prova (prova.html): usa dati e memoria separati da quelli veri.
+var PROVA = /\/prova(\.html)?$/.test(location.pathname);
+if (PROVA) { (function(){
+  var g = Storage.prototype.getItem, s = Storage.prototype.setItem, r = Storage.prototype.removeItem;
+  function k(x){ x = String(x); return x.indexOf('_auth_v1') > 0 ? x : 'prova_' + x; }
+  Storage.prototype.getItem = function(x){ return g.call(this, k(x)); };
+  Storage.prototype.setItem = function(x, v){ return s.call(this, k(x), v); };
+  Storage.prototype.removeItem = function(x){ return r.call(this, k(x)); };
+})(); }
+var AUTH_KEY = 'AIzaSyDb0fJ-XmrXUP2V2OQNZLsh7e6IIYdFrfo';      // chiave API web del progetto (pubblica, non è una password)
+var AUTH_UID = 'ViwMLWRA1Jg89cFEHoehNlQ75ys1';      // unico utente autorizzato
+var AUTH_STORE = 'pasticceria_auth_v1';
+var AUTH_ACCENT = '#fbbf24';
+var _authRefreshing = null;
+
+function authLoad(){ try { return JSON.parse(localStorage.getItem(AUTH_STORE) || 'null'); } catch(e){ return null; } }
+function authSave(s){ try { localStorage.setItem(AUTH_STORE, JSON.stringify(s)); } catch(e){} }
+function authClear(){ try { localStorage.removeItem(AUTH_STORE); } catch(e){} }
+function authHasSession(){ var s = authLoad(); return !!(s && s.refreshToken); }
+
+function authLogin(email, password){
+  return fetch('https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=' + AUTH_KEY, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email, password: password, returnSecureToken: true })
+  }).then(function(r){
+    return r.json().then(function(j){
+      if (!r.ok) { var e = new Error((j && j.error && j.error.message) || ('HTTP ' + r.status)); e.api = true; throw e; }
+      return j;
+    });
+  }).then(function(j){
+    if (j.localId !== AUTH_UID) { var e = new Error('UTENTE_NON_AUTORIZZATO'); e.api = true; throw e; }
+    authSave({ refreshToken: j.refreshToken, idToken: j.idToken, exp: Date.now() + (parseInt(j.expiresIn, 10) || 3600) * 1000, uid: j.localId });
+    return true;
+  });
+}
+
+// Restituisce un gettone valido (lo rinnova da solo quando sta per scadere), oppure null.
+function authToken(){
+  var s = authLoad();
+  if (!s || !s.refreshToken) return Promise.resolve(null);
+  if (s.idToken && s.exp - Date.now() > 5 * 60 * 1000) return Promise.resolve(s.idToken);
+  if (_authRefreshing) return _authRefreshing;
+  function ancoraBuono(){ return (s.idToken && s.exp > Date.now()) ? s.idToken : null; }
+  _authRefreshing = fetch('https://securetoken.googleapis.com/v1/token?key=' + AUTH_KEY, {
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: 'grant_type=refresh_token&refresh_token=' + encodeURIComponent(s.refreshToken)
+  }).then(function(r){
+    return r.json().then(function(j){ return { ok: r.ok, j: j || {} }; });
+  }).then(function(x){
+    _authRefreshing = null;
+    if (x.ok && x.j.id_token) {
+      authSave({ refreshToken: x.j.refresh_token || s.refreshToken, idToken: x.j.id_token, exp: Date.now() + (parseInt(x.j.expires_in, 10) || 3600) * 1000, uid: x.j.user_id || s.uid });
+      return x.j.id_token;
+    }
+    var m = (x.j.error && x.j.error.message) || '';
+    if (/TOKEN_EXPIRED|USER_DISABLED|USER_NOT_FOUND|INVALID_REFRESH_TOKEN|MISSING_REFRESH_TOKEN|INVALID_GRANT/.test(m)) {
+      authClear(); authShow('Accesso scaduto: inserisci di nuovo email e password.'); return null;
+    }
+    return ancoraBuono();
+  }).catch(function(){ _authRefreshing = null; return ancoraBuono(); });
+  return _authRefreshing;
+}
+
+function authDenied(){ authClear(); authShow('Accesso non valido: inserisci di nuovo email e password.'); }
+
+function authShow(msg){
+  var bg = document.getElementById('authBg');
+  if (!bg) {
+    var css = 'width:100%;box-sizing:border-box;padding:12px;margin-bottom:10px;background:#0f0e0c;border:1px solid #3a3530;border-radius:9px;color:#f0ead8;font-family:inherit;font-size:16px;outline:none;';
+    document.body.insertAdjacentHTML('beforeend',
+      '<div id="authBg" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:2147483000;background:#0f0e0c;align-items:center;justify-content:center;padding:20px;">' +
+      '<form id="authForm" onsubmit="return authSubmit(event)" style="width:100%;max-width:360px;box-sizing:border-box;background:#1a1814;border:1px solid #2e2a22;border-radius:14px;padding:22px;color:#f0ead8;font-family:inherit;">' +
+      '<div style="font-size:22px;font-weight:800;color:' + AUTH_ACCENT + ';margin-bottom:4px;">Accesso</div>' +
+      '<div style="font-size:12px;color:#9a917e;margin-bottom:16px;line-height:1.4;">Email e password vengono chieste una sola volta su questo dispositivo.</div>' +
+      '<input id="authEmail" type="email" name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" placeholder="Email" required style="' + css + '">' +
+      '<input id="authPass" type="password" name="password" autocomplete="current-password" placeholder="Password" required style="' + css + '">' +
+      '<div id="authMsg" style="min-height:18px;font-size:13px;color:#f87171;margin:2px 0 12px;line-height:1.4;"></div>' +
+      '<button id="authBtn" type="submit" style="width:100%;padding:13px;border-radius:9px;border:none;background:' + AUTH_ACCENT + ';color:#0f0e0c;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;">Entra</button>' +
+      '</form></div>');
+    bg = document.getElementById('authBg');
+  }
+  document.getElementById('authMsg').textContent = msg || '';
+  if (bg.style.display !== 'flex') {
+    bg.style.display = 'flex';
+    setTimeout(function(){ var e = document.getElementById('authEmail'); if (e && !e.value) { try { e.focus(); } catch(x){} } }, 200);
+  }
+}
+function authHide(){ var bg = document.getElementById('authBg'); if (bg) bg.style.display = 'none'; }
+
+function authSubmit(ev){
+  if (ev && ev.preventDefault) ev.preventDefault();
+  var em = document.getElementById('authEmail').value.trim();
+  var pw = document.getElementById('authPass').value;
+  var msg = document.getElementById('authMsg'), btn = document.getElementById('authBtn');
+  if (!em || !pw) { msg.textContent = 'Inserisci email e password.'; return false; }
+  btn.disabled = true; btn.textContent = 'Accesso in corso…'; msg.textContent = '';
+  authLogin(em, pw).then(function(){
+    document.getElementById('authPass').value = '';
+    btn.disabled = false; btn.textContent = 'Entra';
+    authHide(); authOnLogin();
+  }).catch(function(e){
+    btn.disabled = false; btn.textContent = 'Entra';
+    var m = (e && e.message) || '';
+    if (!e || !e.api) msg.textContent = 'Nessuna connessione: controlla internet e riprova.';
+    else if (/INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD|EMAIL_NOT_FOUND|INVALID_EMAIL|MISSING_PASSWORD/.test(m)) msg.textContent = 'Email o password non corretti.';
+    else if (/TOO_MANY_ATTEMPTS/.test(m)) msg.textContent = 'Troppi tentativi: riprova tra qualche minuto.';
+    else if (/USER_DISABLED/.test(m)) msg.textContent = 'Questo accesso è stato disattivato.';
+    else if (/UTENTE_NON_AUTORIZZATO/.test(m)) msg.textContent = 'Questo utente non è autorizzato a usare l\'app.';
+    else msg.textContent = 'Accesso non riuscito (' + m + ').';
+  });
+  return false;
+}
+
+function authStart(){
+  if (PROVA) document.body.insertAdjacentHTML('beforeend', '<div style="position:fixed;left:0;right:0;bottom:0;z-index:2147483001;background:#b45309;color:#fff;font:700 12px/1.2 sans-serif;text-align:center;padding:6px;letter-spacing:1px;pointer-events:none;">VERSIONE DI PROVA · dati di prova</div>');
+  if (authHasSession()) authOnLogin(); else authShow();
+}
+var _appAvviata = false;
+function authOnLogin(){ if (!_appAvviata) { _appAvviata = true; window.initFirebase(); } else { window.loadFromSync(); } }
+
 // Chiave API rimossa il 15/11/2026: la lettura fatture non è usata. Si cancella anche dai dispositivi.
 try { localStorage.removeItem('anthropic_api_key'); } catch(e){}
 
@@ -372,7 +494,7 @@ try { localStorage.removeItem('anthropic_api_key'); } catch(e){}
 
 const _FB_PROJECT = 'pasticceria-9885a';
 const _FB_API_KEY = 'AIzaSyDb0fJ-XmrXUP2V2OQNZLsh7e6IIYdFrfo';
-const _FB_BASE = `https://firestore.googleapis.com/v1/projects/${_FB_PROJECT}/databases/(default)/documents/pasticceria/dati`;
+const _FB_BASE = `https://firestore.googleapis.com/v1/projects/${_FB_PROJECT}/databases/(default)/documents/pasticceria/${PROVA ? 'prova' : 'dati'}`;
 
 let _fbSaving = false;
 let _lastSyncData = '';
@@ -427,9 +549,14 @@ window.saveToFirebase = async function() {
         updatedAt: { stringValue: new Date().toISOString() }
       }
     };
+    const _tok = await authToken();
+    if (!_tok) {
+      if (el) { el.textContent = authHasSession() ? '⚠️ Offline' : '🔒 Accesso richiesto'; el.style.color = '#f87171'; }
+      _fbSaving = false; return;
+    }
     const resp = await fetch(_FB_BASE + '?key=' + _FB_API_KEY, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + _tok },
       body: JSON.stringify(payload)
     });
     if (resp.ok) {
@@ -445,6 +572,7 @@ window.saveToFirebase = async function() {
       const err = await resp.json();
       console.warn('Firebase save error:', err);
       if (el) { el.textContent = '⚠️ Errore salvataggio'; el.style.color = '#f87171'; }
+      if (resp.status === 401 || resp.status === 403) authDenied();
     }
   } catch(e) {
     console.warn('Firebase fetch error:', e);
@@ -467,7 +595,13 @@ window.loadFromSync = async function() {
   if (_fbSaving) return; // non sovrascrivere durante un salvataggio
   const el = document.getElementById('fb-status');
   try {
-    const resp = await fetch(_FB_BASE + '?key=' + _FB_API_KEY);
+    const _tok = await authToken();
+    if (!_tok) {
+      if (el) { el.textContent = authHasSession() ? '⚠️ Offline' : '🔒 Accesso richiesto'; el.style.color = '#f87171'; }
+      return;
+    }
+    const resp = await fetch(_FB_BASE + '?key=' + _FB_API_KEY, { headers: { 'Authorization': 'Bearer ' + _tok } });
+    if (resp.status === 401 || resp.status === 403) { authDenied(); return; }
     if (resp.status === 404) {
       if (el) { el.textContent = '☁️ Pronto'; el.style.color = '#fbbf24'; }
       clearInterval(_syncInterval);
@@ -488,7 +622,7 @@ window.loadFromSync = async function() {
       (data || []).map(r => { const s = {}; Object.keys(r).sort().forEach(k => s[k] = r[k]); return s; }).sort((a,b) => (a.product||'').localeCompare(b.product||''))
     );
     const newHash = _stableHash(newRaw);
-    if (newHash === _lastSyncData) return;
+    if (newHash === _lastSyncData) { if (el && /Accesso/.test(el.textContent)) { el.textContent = '☁️ Sincronizzato'; el.style.color = '#22c55e'; } return; }
 
     if (newRaw && newRaw.length > 0) {
       rawData.length = 0;
@@ -864,7 +998,7 @@ function applyListinoFromFirebase(data) {
   }
 }
 
-window.addEventListener('load', () => setTimeout(window.initFirebase, 500));
+window.addEventListener('load', () => setTimeout(authStart, 500));
 </script>
 </head>
 <body>
@@ -988,7 +1122,7 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v64</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v65</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
@@ -5309,6 +5443,7 @@ function cancelGeminiKey() {
   var lastCheck = 0;
 
   function checkForUpdate(){
+    if (typeof PROVA !== 'undefined' && PROVA) return;
     var now = Date.now();
     if(now - lastCheck < 60000) return; // max 1 controllo al minuto
     lastCheck = now;
