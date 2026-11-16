@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<meta name="app-version" content="v65">
+<meta name="app-version" content="v66">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Pasticceria">
@@ -11,7 +11,7 @@
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
 <meta http-equiv="Expires" content="0">
-<title>Confronto Prezzi Fornitori v65</title>
+<title>Confronto Prezzi Fornitori v66</title>
 <style>
 
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@700;900&display=swap');
@@ -427,6 +427,32 @@ function authToken(){
   }).catch(function(){ _authRefreshing = null; return ancoraBuono(); });
   return _authRefreshing;
 }
+
+// Compatibilità con il backup automatico: una lettura diretta del database fatta dalla pagina senza gettone
+// riceve il gettone di questo dispositivo. Se l'accesso manca o viene rifiutato la lettura FALLISCE,
+// così non vengono mai salvati dati sbagliati al posto di quelli veri.
+var AUTH_DB = 'https://firestore.googleapis.com/v1/projects/pasticceria-9885a/';       // indirizzo del database di questa app
+var AUTH_RTDB = false;     // true = Realtime Database (gettone nell'indirizzo), false = Firestore (gettone nell'intestazione)
+(function(){
+  var orig = window.fetch;
+  window.fetch = function(input, init){
+    var u = (typeof input === 'string') ? input : '';
+    if (!u || u.indexOf(AUTH_DB) !== 0) return orig.apply(this, arguments);
+    var h = (init && init.headers) || {};
+    if (/[?&]auth=/.test(u) || h.Authorization || h.authorization) return orig.apply(this, arguments);
+    return authToken().then(function(tok){
+      if (!tok) throw new TypeError('Accesso mancante: lettura del database non eseguita');
+      var o = {}, k;
+      for (k in (init || {})) o[k] = init[k];
+      if (AUTH_RTDB) { u = u + (u.indexOf('?') < 0 ? '?' : '&') + 'auth=' + encodeURIComponent(tok); }
+      else { var hh = {}; for (k in h) hh[k] = h[k]; hh.Authorization = 'Bearer ' + tok; o.headers = hh; }
+      return orig.call(window, u, o);
+    }).then(function(r){
+      if (r.status === 401 || r.status === 403) throw new TypeError('Accesso rifiutato dal database (' + r.status + ')');
+      return r;
+    });
+  };
+})();
 
 function authDenied(){ authClear(); authShow('Accesso non valido: inserisci di nuovo email e password.'); }
 
@@ -1122,7 +1148,7 @@ body { padding-bottom: 70px; }
   </div>
 
   <!-- Pulsante aggiorna software piccolo in fondo -->
-  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v65</div>
+  <div style="text-align:center;margin:10px 0 2px;font-size:11px;color:#fbbf24;letter-spacing:2px;font-family:monospace;font-weight:700;">v66</div>
   <div id="desktop-btns" style="margin-top:4px;display:flex;gap:8px;">
     <button onclick="openNewArticleModal()" style="flex:1;padding:10px;background:#1a1d2e;border:1px solid #2a2d3a;color:#4ade80;border-radius:8px;font-size:12px;font-family:inherit;cursor:pointer;">＋ Nuovo articolo</button>
     <input type="file" id="github-file-input" accept=".html" style="display:none;" onchange="pubblicaSuGitHub(this)">
